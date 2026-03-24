@@ -17,7 +17,7 @@
 
 import axios from "axios";
 
-const API_BASE = "https://full-pans-invite.loca.lt/api";
+const API_BASE = "http://192.168.1.109:5000/api";
 
 // ─── Localtunnel Bypass ───────────────────────────────────────
 // Localtunnel her isteğe bir "Click to Continue" sayfası gösterir.

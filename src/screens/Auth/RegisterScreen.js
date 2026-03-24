@@ -84,11 +84,7 @@ export default function RegisterScreen({ navigation }) {
     setLoadingDistricts(true);
     setDistrictsList([]);
     try {
-      // Türkçe karakterleri İngilizce API formatına çevir
-      const charMap = { "ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u", "Ç": "C", "Ğ": "G", "İ": "I", "Ö": "O", "Ş": "S", "Ü": "U" };
-      const apiCity = form.city.replace(/[çğıöşüÇĞİÖŞÜ]/g, match => charMap[match]);
-      
-      const response = await axios.get(`https://turkiyeapi.dev/api/v1/provinces?name=${apiCity}`);
+      const response = await axios.get(`https://turkiyeapi.dev/api/v1/provinces?name=${encodeURIComponent(form.city)}`);
       if (response.data?.data?.[0]?.districts) {
          let fetchedProps = response.data.data[0].districts.map(d => ({ name: d.name, city: form.city }));
          fetchedProps.sort((a, b) => a.name.localeCompare(b.name, 'tr-TR'));

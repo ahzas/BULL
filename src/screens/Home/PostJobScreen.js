@@ -90,19 +90,18 @@ export default function PostJobScreen({ navigation }) {
     description: "",
     category: "",
     subCategory: "",
+    serviceType: "Bull-Part",
+    fromLocation: "",
+    toLocation: "",
   });
 
   const handlePublish = async () => {
-    const { title, company, price, location, category, subCategory } = form;
+    const { title, company, price, location, category, subCategory, serviceType, fromLocation, toLocation } = form;
 
-    if (
-      !title ||
-      !company ||
-      !price ||
-      !location ||
-      !category ||
-      !subCategory
-    ) {
+    const isTir = serviceType === "Bull-Tır" && USER_ROLE === "employer";
+    const isLocationValid = isTir ? (fromLocation && toLocation) : location;
+
+    if (!title || !company || !price || !category || !subCategory || !isLocationValid) {
       Alert.alert("Eksik Bilgi", "Lütfen tüm zorunlu alanları doldurunuz.");
       return;
     }
@@ -168,6 +167,23 @@ export default function PostJobScreen({ navigation }) {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {USER_ROLE === "employer" && (
+            <View style={styles.serviceTypeContainer}>
+              <TouchableOpacity
+                style={[styles.serviceTypeBtn, form.serviceType === "Bull-Part" && styles.serviceTypeBtnActive]}
+                onPress={() => setForm({ ...form, serviceType: "Bull-Part" })}
+              >
+                <Text style={[styles.serviceTypeText, form.serviceType === "Bull-Part" && styles.serviceTypeTextActive]}>💼 Bull-Part</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.serviceTypeBtn, form.serviceType === "Bull-Tır" && styles.serviceTypeBtnActive]}
+                onPress={() => setForm({ ...form, serviceType: "Bull-Tır" })}
+              >
+                <Text style={[styles.serviceTypeText, form.serviceType === "Bull-Tır" && styles.serviceTypeTextActive]}>🚛 Bull-Tır</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
               {USER_ROLE === "worker" ? "Yetenek Başlığı" : "İş Başlığı"}
@@ -211,16 +227,42 @@ export default function PostJobScreen({ navigation }) {
                 onChangeText={(t) => setForm({ ...form, price: t })}
               />
             </View>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Konum</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="İlçe, İl"
-                value={form.location}
-                onChangeText={(t) => setForm({ ...form, location: t })}
-              />
-            </View>
+            
+            {(form.serviceType === "Bull-Tır" && USER_ROLE === "employer") ? null : (
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.label}>Konum</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="İlçe, İl"
+                  value={form.location}
+                  onChangeText={(t) => setForm({ ...form, location: t })}
+                />
+              </View>
+            )}
           </View>
+
+          {form.serviceType === "Bull-Tır" && USER_ROLE === "employer" && (
+            <View style={styles.row}>
+              <View style={[styles.inputGroup, { flex: 1, marginRight: 10 }]}>
+                <Text style={styles.label}>Nereden</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Yükleme Yeri"
+                  value={form.fromLocation}
+                  onChangeText={(t) => setForm({ ...form, fromLocation: t })}
+                />
+              </View>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.label}>Nereye</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Teslimat Yeri"
+                  value={form.toLocation}
+                  onChangeText={(t) => setForm({ ...form, toLocation: t })}
+                />
+              </View>
+            </View>
+          )}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Kategori</Text>
@@ -515,4 +557,27 @@ const styles = StyleSheet.create({
   },
   commissionTotalLabel: { fontSize: 15, color: "#003366", fontWeight: "800" },
   commissionTotalValue: { fontSize: 17, color: "#003366", fontWeight: "800" },
+  serviceTypeContainer: {
+    flexDirection: "row",
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+  },
+  serviceTypeBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  serviceTypeBtnActive: {
+    backgroundColor: "#003366",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  serviceTypeText: { fontSize: 15, fontWeight: "700", color: "#64748B" },
+  serviceTypeTextActive: { color: "#FFFFFF" },
 });

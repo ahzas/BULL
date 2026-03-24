@@ -7,8 +7,11 @@ const JobSchema = new mongoose.Schema({
   image: { type: String },
   category: { type: String },
   subCategory: { type: String },
+  serviceType: { type: String, enum: ["Bull-Part", "Bull-Tır"], default: "Bull-Part" },
   price: { type: String },
-  location: { type: String },
+  location: { type: String }, // Bull-Part uses this
+  fromLocation: { type: String }, // Bull-Tır explicitly uses this
+  toLocation: { type: String }, // Bull-Tır explicitly uses this
   description: { type: String },
   rating: { type: Number, default: 5.0 },
   createdAt: { type: Date, default: Date.now },
