@@ -10,8 +10,14 @@ const JobSchema = new mongoose.Schema({
   serviceType: { type: String, enum: ["Bull-Part", "Bull-Tır"], default: "Bull-Part" },
   price: { type: String },
   location: { type: String }, // Bull-Part uses this
-  fromLocation: { type: String }, // Bull-Tır explicitly uses this
-  toLocation: { type: String }, // Bull-Tır explicitly uses this
+  fromLocation: { type: String },
+  toLocation: { type: String },
+  fromDistrict: { type: String },
+  toDistrict: { type: String },
+  tonnage: { type: Number },
+  productType: { type: String },
+  vehicleType: { type: String },
+  loadingDate: { type: String },
   description: { type: String },
   rating: { type: Number, default: 5.0 },
   createdAt: { type: Date, default: Date.now },
