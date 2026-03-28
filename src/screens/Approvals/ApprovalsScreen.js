@@ -19,10 +19,11 @@ import { AuthContext } from "../../context/AuthContext";
 import API_BASE from "../../config/api";
 
 export default function ApprovalsScreen({ navigation }) {
-  const { user, isEmployerMode } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const userData = user?.user || user;
   const userId = userData?._id || userData?.id;
-  const role = isEmployerMode ? "employer" : "worker";
+  const isEmployer = userData?.role === "employer";
+  const role = isEmployer ? "employer" : "worker";
 
   const [pendingHires, setPendingHires] = useState([]);
   const [pendingCompletions, setPendingCompletions] = useState([]);
@@ -54,7 +55,7 @@ export default function ApprovalsScreen({ navigation }) {
     useCallback(() => {
       setLoading(true);
       fetchApprovals();
-    }, [userId, isEmployerMode]),
+    }, [userId, isEmployer]),
   );
 
   const onRefresh = () => {
@@ -85,8 +86,8 @@ export default function ApprovalsScreen({ navigation }) {
   };
 
   const handleApproveCompletion = async (jobId) => {
-    const titleText = isEmployerMode ? "İş Tamamlandı" : "İşi Tamamladım";
-    const msgText = isEmployerMode
+    const titleText = isEmployer ? "İş Tamamlandı" : "İşi Tamamladım";
+    const msgText = isEmployer
       ? "Bu işin başarıyla tamamlandığını onaylıyor musunuz? (İki taraf da onayladığında iş kapanır)"
       : "Bu işi bitirdiğinizi onaylıyor musunuz? (Kazancınız hesabınıza yansıyacaktır)";
 
@@ -184,7 +185,7 @@ export default function ApprovalsScreen({ navigation }) {
   // 2- İş Bitimi Onay Bekleyenler Listesi Elemanı
   const renderCompletionItem = ({ item }) => {
     // Kullanıcının daha önce onay verip vermediğine bakalım (buton durumunu değiştirmek için)
-    const hasApproved = isEmployerMode
+    const hasApproved = isEmployer
       ? item.employerApproved
       : item.workerApproved;
 
@@ -226,7 +227,7 @@ export default function ApprovalsScreen({ navigation }) {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.completionBtnText}>
-              {isEmployerMode ? "İş Tamamlandı" : "İşi Tamamladım"}
+              {isEmployer ? "İş Tamamlandı" : "İşi Tamamladım"}
             </Text>
           </TouchableOpacity>
         )}
@@ -252,7 +253,7 @@ export default function ApprovalsScreen({ navigation }) {
               activeTab === "hires" && styles.activeTabText,
             ]}
           >
-            {isEmployerMode ? "Başvurular" : "Başvurularım"} ({pendingHires.length})
+            {isEmployer ? "Başvurular" : "Başvurularım"} ({pendingHires.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -282,7 +283,7 @@ export default function ApprovalsScreen({ navigation }) {
           data={activeTab === "hires" ? pendingHires : pendingCompletions}
           renderItem={
             activeTab === "hires"
-              ? (isEmployerMode ? renderHireItem : renderWorkerHireItem)
+              ? (isEmployer ? renderHireItem : renderWorkerHireItem)
               : renderCompletionItem
           }
           keyExtractor={(item, index) =>

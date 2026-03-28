@@ -8,7 +8,6 @@ import API_BASE from "../config/api";
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isEmployerMode, setIsEmployerMode] = useState(false);
 
   const login = async (email, password) => {
     try {
@@ -66,7 +65,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setIsLoggedIn(false);
-    setIsEmployerMode(false);
   };
 
   return (
@@ -75,8 +73,6 @@ export const AuthProvider = ({ children }) => {
         user,
         setUser,
         isLoggedIn,
-        isEmployerMode,
-        setIsEmployerMode,
         login,
         updateUser,
         logout,

@@ -6,7 +6,6 @@ import {
   Image,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -34,9 +33,8 @@ const SpecialMenu = ({ icon, title, subtitle, color, onPress }) => (
 );
 
 export default function ProfileScreen({ navigation }) {
-  const { user, logout, isEmployerMode, setIsEmployerMode } =
-    useContext(AuthContext);
-  const isEmployer = isEmployerMode;
+  const { user, logout } = useContext(AuthContext);
+  const isEmployer = user?.user?.role === "employer" || user?.role === "employer";
 
   // Veri Kontrolü: Backend'den gelen ismin kaybolmaması için geliştirilmiş mantık
   const getFullName = () => {
@@ -112,26 +110,12 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* 2. ROL GEÇİŞİ */}
-          <View
-            style={[styles.roleToggle, isEmployer && styles.roleToggleEmployer]}
-          >
-            <View>
-              <Text style={[styles.roleText, isEmployer && { color: "#FFF" }]}>
-                {isEmployer ? "İşveren Paneli Aktif" : "İşçi Modu Aktif"}
-              </Text>
-              <Text
-                style={[styles.roleSubText, isEmployer && { color: "#E2E8F0" }]}
-              >
-                {isEmployer ? "İlanları yönetin" : "Günlük işleri bulun"}
-              </Text>
-            </View>
-            <Switch
-              value={isEmployer}
-              onValueChange={setIsEmployerMode}
-              trackColor={{ false: "#CBD5E1", true: "#28A745" }}
-              thumbColor={"#FFF"}
-            />
+          {/* 2. STATİK ROL GÖSTERGESİ */}
+          <View style={styles.roleStaticBadge}>
+            <Ionicons name={isEmployer ? "briefcase" : "hammer"} size={20} color="#FFF" />
+            <Text style={styles.roleStaticBadgeText}>
+              {isEmployer ? "İşveren Profili" : "İşçi Profili"}
+            </Text>
           </View>
         </View>
 
@@ -283,29 +267,20 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: 2,
   },
-  roleToggle: {
+  roleStaticBadge: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  roleToggleEmployer: {
     backgroundColor: "#003366",
-    borderColor: "#003366",
+    padding: 12,
+    borderRadius: 12,
+    justifyContent: "center",
+    marginTop: 10,
+    gap: 10
   },
-  roleText: {
-    fontSize: 15,
+  roleStaticBadgeText: {
+    color: "#FFF",
     fontWeight: "bold",
-    color: "#1E293B",
-  },
-  roleSubText: {
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 2,
+    fontSize: 16
   },
   section: {
     paddingHorizontal: 20,

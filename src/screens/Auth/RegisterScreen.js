@@ -318,6 +318,24 @@ export default function RegisterScreen({ navigation }) {
             <View style={styles.formArea}>
 
               <View style={styles.inputGroup}>
+                <Text style={styles.label}>Profil Türü</Text>
+                <View style={styles.roleRow}>
+                  <TouchableOpacity 
+                    style={[styles.roleBox, form.role === 'worker' && styles.roleBoxActive]}
+                    onPress={() => handleChange('role', 'worker')}
+                  >
+                    <Text style={[styles.roleLabel, form.role === 'worker' && styles.roleLabelActive]}>İşçi (Yetenek Paylaş)</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.roleBox, form.role === 'employer' && styles.roleBoxActive]}
+                    onPress={() => handleChange('role', 'employer')}
+                  >
+                    <Text style={[styles.roleLabel, form.role === 'employer' && styles.roleLabelActive]}>İşveren (İlan Ver)</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
                 <Text style={styles.label}>İlgi Alanları / Sektörler</Text>
                 <TextInput 
                   style={[styles.input, styles.textArea]} 

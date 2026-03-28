@@ -20,7 +20,7 @@ const { width, height } = Dimensions.get("window");
 import API_BASE from "../../config/api";
 
 export default function MapScreen({ navigation }) {
-  const { user, isEmployerMode } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { jobs } = useContext(JobContext);
   const userData = user?.user || user;
 
@@ -29,7 +29,7 @@ export default function MapScreen({ navigation }) {
   const [nearbyWorkers, setNearbyWorkers] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const isEmployer = isEmployerMode || userData?.role === "employer";
+  const isEmployer = userData?.role === "employer";
 
   // Konum al ve sunucuya gönder
   useEffect(() => {

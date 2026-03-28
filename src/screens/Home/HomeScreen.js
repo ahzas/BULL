@@ -68,8 +68,8 @@ export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const { jobs, setJobs } = useContext(JobContext);
-  const { user, isEmployerMode } = useContext(AuthContext);
-  const USER_ROLE = isEmployerMode ? "employer" : user?.role || "worker";
+  const { user } = useContext(AuthContext);
+  const USER_ROLE = user?.role === "employer" || user?.user?.role === "employer" ? "employer" : "worker";
 
   const API_URL = `${API_BASE}/jobs`;
 
@@ -159,7 +159,7 @@ export default function HomeScreen() {
         }
       />
 
-      {isEmployerMode ? (
+      {USER_ROLE === "employer" ? (
         <TouchableOpacity
           style={styles.fabEmployer}
           onPress={() => navigation.navigate("PostJob")}

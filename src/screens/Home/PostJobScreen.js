@@ -56,9 +56,9 @@ const CATEGORY_DATA = {
 
 export default function PostJobScreen({ navigation }) {
   const { addJob } = useContext(JobContext);
-  const { user, isEmployerMode } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const userData = user?.user || user;
-  const USER_ROLE = isEmployerMode ? "employer" : userData?.role || "worker";
+  const USER_ROLE = userData?.role === "employer" ? "employer" : "worker";
   const streakDays = userData?.streak || 0;
 
   const API_URL = `${API_BASE}/jobs`;

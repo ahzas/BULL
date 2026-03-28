@@ -17,14 +17,15 @@ import API_BASE from "../../config/api";
 
 export default function JobDetailScreen({ route, navigation }) {
   const { job } = route.params;
-  const { user, isEmployerMode } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const API_URL = `${API_BASE}/jobs`;
 
   const userData = user?.user || user;
   const userId = userData?._id || userData?.id;
 
-  // Kullanıcı ilanın sahibi mi?
+  // Kullanıcı ilanın sahibi mi ve rolü ne?
+  const isEmployerMode = userData?.role === "employer";
   const isOwner = job.ownerId?._id === userId || job.ownerId === userId;
 
   const handleApply = async () => {
