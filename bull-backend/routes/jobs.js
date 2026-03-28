@@ -108,6 +108,36 @@ router.put("/:jobId/complete", async (req, res) => {
   }
 });
 
+// İŞVERENİN AKTİF ÇALIŞANLARI (in_progress olan işler + işçi detayları)
+router.get("/active-workers/:employerId", async (req, res) => {
+  try {
+    const { employerId } = req.params;
+
+    const activeJobs = await Job.find({
+      ownerId: employerId,
+      status: "in_progress",
+      assignedTo: { $ne: null },
+    })
+      .populate("assignedTo", "name email birthDate city region rating ratingCount phone")
+      .sort({ createdAt: -1 });
+
+    // İşçi bilgileri + iş bilgilerini birleştir
+    const workers = activeJobs.map((job) => ({
+      jobId: job._id,
+      jobTitle: job.title,
+      jobPrice: job.price,
+      jobLocation: job.location,
+      jobCategory: job.category,
+      jobCreatedAt: job.createdAt,
+      worker: job.assignedTo,
+    }));
+
+    res.json(workers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // İŞÇİNİN İLANA BAŞVURMASI
 router.post("/:jobId/apply", async (req, res) => {
   try {

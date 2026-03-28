@@ -31,6 +31,7 @@ import TermsScreen from "./src/screens/Legal/TermsScreen";
 import BusinessProfileScreen from "./src/screens/Profile/BusinessProfileScreen";
 import ChangePasswordScreen from "./src/screens/Profile/ChangePasswordScreen";
 import SettingsScreen from "./src/screens/Profile/SettingsScreen";
+import ActiveWorkersScreen from "./src/screens/Profile/ActiveWorkersScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -137,6 +138,11 @@ export default function App() {
               <Stack.Screen
                 name="ChangePassword"
                 component={ChangePasswordScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="ActiveWorkers"
+                component={ActiveWorkersScreen}
                 options={{ headerShown: false }}
               />
             </Stack.Navigator>
