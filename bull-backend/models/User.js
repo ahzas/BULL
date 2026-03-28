@@ -10,6 +10,7 @@ const UserSchema = new mongoose.Schema({
   streak: { type: Number, default: 0 },
   bullPoints: { type: Number, default: 0 },
   rating: { type: Number, default: 5.0 },
+  ratingCount: { type: Number, default: 0 },
   // KONUM BİLGİLERİ (İl / İlçe)
   city: { type: String },
   region: { type: String },

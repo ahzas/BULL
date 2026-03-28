@@ -19,7 +19,7 @@ import { JobContext } from "../../context/JobContext";
 const { width, height } = Dimensions.get("window");
 import API_BASE from "../../config/api";
 
-export default function MapScreen() {
+export default function MapScreen({ navigation }) {
   const { user, isEmployerMode } = useContext(AuthContext);
   const { jobs } = useContext(JobContext);
   const userData = user?.user || user;
@@ -126,7 +126,7 @@ export default function MapScreen() {
               }}
               pinColor="#28A745"
             >
-              <Callout>
+              <Callout onPress={() => navigation.navigate("JobDetail", { job })}>
                 <View style={styles.callout}>
                   <Text style={styles.calloutTitle}>{job.title}</Text>
                   <Text style={styles.calloutCompany}>{job.company}</Text>

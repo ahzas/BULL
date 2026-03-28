@@ -48,7 +48,27 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const fullName = getFullName();
-  const age = user?.user?.age || user?.age || "--";
+  const calculateAge = (birthDateStr) => {
+    if (!birthDateStr) return "--";
+    let birthDate;
+    if (birthDateStr.includes("/")) {
+      const [day, month, year] = birthDateStr.split("/");
+      birthDate = new Date(`${year}-${month}-${day}`);
+    } else {
+      birthDate = new Date(birthDateStr);
+    }
+    if (isNaN(birthDate)) return "--";
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const birthDate = user?.user?.birthDate || user?.birthDate;
+  const age = calculateAge(birthDate);
 
   const handleLogout = () => {
     Alert.alert("Çıkış", "Oturumu kapatmak istiyor musunuz?", [
@@ -82,7 +102,10 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <View style={styles.userNameContainer}>
               <Text style={styles.userName}>{fullName}</Text>
-              <Text style={styles.userSub}>{age} Yaşında</Text>
+              <Text style={styles.userSub}>
+                {age} Yaşında • ⭐ {user?.user?.rating?.toFixed(1) || user?.rating?.toFixed(1) || "5.0"} 
+                <Text style={{ fontSize: 11, color: "#94A3B8" }}> ({user?.user?.ratingCount || user?.ratingCount || 0} Değerlendirme)</Text>
+              </Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
               <Ionicons name="settings-outline" size={22} color="#64748B" />

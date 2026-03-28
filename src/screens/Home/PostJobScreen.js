@@ -165,8 +165,8 @@ export default function PostJobScreen({ navigation }) {
         }
         setStep(4);
     } else if (step === 4) {
-        if (!form.title || !form.price || !form.category) {
-            Alert.alert("Eksik", "Lütfen zorunlu alanları doldurun."); return;
+        if (!form.title || !form.company || !form.price || !form.category) {
+            Alert.alert("Eksik", "Lütfen ilan/yetenek başlığını, firma/isim bilgisini, fiyat ve kategoriyi doldurun."); return;
         }
         if (form.serviceType === "Bull-Tır") {
             if(!form.vehicleType || !form.productType || !form.tonnage || !form.loadingDate) {
@@ -377,6 +377,16 @@ export default function PostJobScreen({ navigation }) {
                   placeholder={USER_ROLE === "worker" ? "Örn: Profesyonel Garson" : "Örn: İstanbul-Ankara Karışık Yük"}
                   value={form.title}
                   onChangeText={(t) => setForm({ ...form, title: t })}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{USER_ROLE === "worker" ? "Adınız Soyadınız" : "Firma / İşveren Adı"}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Örn: ABC Lojistik veya Ahmet Yılmaz"
+                  value={form.company}
+                  onChangeText={(t) => setForm({ ...form, company: t })}
                 />
               </View>
 

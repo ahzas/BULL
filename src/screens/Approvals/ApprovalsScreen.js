@@ -96,10 +96,14 @@ export default function ApprovalsScreen({ navigation }) {
         text: "Onayla",
         onPress: async () => {
           try {
-            await axios.put(`${API_BASE}/jobs/${jobId}/approve-completion`, {
+            const putRes = await axios.put(`${API_BASE}/jobs/${jobId}/approve-completion`, {
               role,
             });
-            Alert.alert("Başarılı", "Onayınız iletildi.");
+            if (putRes.data.job.status === "completed") {
+                Alert.alert("İş Tamamlandı! 🎉", "İş başarıyla tamamlandı. Lütfen 'İşlerim' -> 'Geçmiş İşler' sekmesine giderek karşı tarafı değerlendirin / Puan verin.");
+            } else {
+                Alert.alert("Başarılı", "Onayınız iletildi. Karşı taraf da işin bittiğini onayladığında değerlendirme yapabileceksiniz.");
+            }
             fetchApprovals();
           } catch (error) {
             Alert.alert("Hata", "İşlem sırasında bir sorun oluştu.");
@@ -129,7 +133,8 @@ export default function ApprovalsScreen({ navigation }) {
                 {worker.name || "İsimsiz İşçi"}
               </Text>
               <Text style={styles.workerRating}>
-                ⭐ {worker.rating ? worker.rating.toFixed(1) : "Yeni"}
+                ⭐ {worker.rating ? worker.rating.toFixed(1) : "5.0"}
+                <Text style={{ fontSize: 11, color: "#64748B", fontWeight: "normal" }}> ({worker.ratingCount || 0} Değerlendirme)</Text>
               </Text>
             </View>
             <TouchableOpacity

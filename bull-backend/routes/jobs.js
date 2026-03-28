@@ -18,6 +18,12 @@ router.post("/", async (req, res) => {
     location: req.body.location,
     fromLocation: req.body.fromLocation,
     toLocation: req.body.toLocation,
+    fromDistrict: req.body.fromDistrict,
+    toDistrict: req.body.toDistrict,
+    tonnage: req.body.tonnage,
+    productType: req.body.productType,
+    vehicleType: req.body.vehicleType,
+    loadingDate: req.body.loadingDate,
     description: req.body.description,
     ownerRole: req.body.ownerRole,
     type: req.body.type,
@@ -60,10 +66,11 @@ router.get("/my-jobs/:userId", async (req, res) => {
 
     // Geçmiş (tamamlanmış) ilanlar - assignedTo bilgisini populate ediyoruz
     const pastJobs = await Job.find({
-      ownerId: userId,
+      $or: [{ ownerId: userId }, { assignedTo: userId }],
       status: "completed",
     })
-      .populate("assignedTo", "name rating") // İşçi detaylarını getir
+      .populate("assignedTo", "name rating ratingCount")
+      .populate("ownerId", "name company rating ratingCount")
       .sort({ completedAt: -1 });
 
     res.json({
@@ -115,8 +122,11 @@ router.post("/:jobId/apply", async (req, res) => {
       return res.status(400).json({ message: "Zaten başvurdunuz" });
     }
 
-    job.applicants.push(userId);
-    const updatedJob = await job.save();
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      { $push: { applicants: userId } },
+      { new: true }
+    );
 
     res.json({ message: "Başvuru başarılı", job: updatedJob });
   } catch (err) {
@@ -154,16 +164,24 @@ router.put("/:jobId/approve-completion", async (req, res) => {
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ message: "İlan bulunamadı" });
 
-    if (role === "worker") job.workerApproved = true;
-    if (role === "employer") job.employerApproved = true;
+    const updateFields = {};
+    if (role === "worker") updateFields.workerApproved = true;
+    if (role === "employer") updateFields.employerApproved = true;
+
+    const isWorkerApproved = role === "worker" || job.workerApproved;
+    const isEmployerApproved = role === "employer" || job.employerApproved;
 
     // Her ikisi de onayladıysa tamamen bitir
-    if (job.workerApproved && job.employerApproved) {
-      job.status = "completed";
-      job.completedAt = new Date();
+    if (isWorkerApproved && isEmployerApproved) {
+      updateFields.status = "completed";
+      updateFields.completedAt = new Date();
     }
 
-    const updatedJob = await job.save();
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      { $set: updateFields },
+      { new: true }
+    );
     res.json({ message: "Onay işlemi başarılı", job: updatedJob });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -211,6 +229,53 @@ router.get("/approvals/:userId/:role", async (req, res) => {
       pendingHires,
       pendingCompletions,
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// KULLANICIYI DEĞERLENDİRME (PUANLAMA)
+router.post("/:jobId/rate", async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { targetUserId, ratingValue, role } = req.body;
+
+    if (!ratingValue || ratingValue < 1 || ratingValue > 5) {
+      return res.status(400).json({ message: "Geçersiz puan değeri" });
+    }
+
+    const job = await Job.findById(jobId);
+    if (!job) return res.status(404).json({ message: "İlan bulunamadı" });
+    if (job.status !== "completed") return res.status(400).json({ message: "İş henüz tamamlanmamış" });
+
+    if (role === "worker" && job.workerRated) return res.status(400).json({ message: "İşveren için zaten oy kullandınız" });
+    if (role === "employer" && job.employerRated) return res.status(400).json({ message: "İşçi için zaten oy kullandınız" });
+
+    const targetUser = await require("../models/User").findById(targetUserId);
+    if (!targetUser) return res.status(404).json({ message: "Oylanacak kullanıcı bulunamadı" });
+
+    const currentRating = targetUser.rating || 5.0;
+    const currentCount = targetUser.ratingCount || 0;
+    const newCount = currentCount + 1;
+    
+    let newRating;
+    if (currentCount === 0) {
+        newRating = ratingValue;
+    } else {
+        newRating = ((currentRating * currentCount) + ratingValue) / newCount;
+    }
+
+    targetUser.rating = parseFloat(newRating.toFixed(1));
+    targetUser.ratingCount = newCount;
+    await targetUser.save();
+
+    const jobUpdateFields = {};
+    if (role === "worker") jobUpdateFields.workerRated = true;
+    if (role === "employer") jobUpdateFields.employerRated = true;
+
+    await Job.findByIdAndUpdate(jobId, { $set: jobUpdateFields });
+
+    res.json({ message: "Değerlendirme başarıyla kaydedildi!", newRating: targetUser.rating });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

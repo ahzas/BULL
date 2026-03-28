@@ -36,6 +36,8 @@ const JobSchema = new mongoose.Schema({
   },
   workerApproved: { type: Boolean, default: false }, // İşçinin işi tamamlama onayı
   employerApproved: { type: Boolean, default: false }, // İşverenin işi tamamlama onayı
+  workerRated: { type: Boolean, default: false }, // İşçi karşı tarafı puanladı mı?
+  employerRated: { type: Boolean, default: false }, // İşveren karşı tarafı puanladı mı?
   completedAt: { type: Date },
   type: { type: String, enum: ["job_offer", "skill_profile"], required: true },
   // KONUM KOORDİNATLARI

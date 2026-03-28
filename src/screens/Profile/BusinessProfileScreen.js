@@ -180,7 +180,10 @@ export default function BusinessProfileScreen() {
                             />
                             <View style={styles.workerInfo}>
                                 <Text style={styles.workerName}>{worker.name}</Text>
-                                <Text style={styles.workerRating}>Puan: ⭐ {worker.rating}</Text>
+                                <Text style={styles.workerRating}>
+                                    Puan: ⭐ {worker.rating ? worker.rating.toFixed(1) : "5.0"}
+                                    <Text style={{ fontSize: 10, color: "#94A3B8" }}> ({worker.ratingCount || 0} Değerlendirme)</Text>
+                                </Text>
                             </View>
                             <TouchableOpacity style={styles.viewBtn}>
                                 <Text style={styles.viewBtnText}>Detay</Text>
