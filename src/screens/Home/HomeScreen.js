@@ -30,36 +30,44 @@ const JobCard = ({ item, navigation }) => {
       ? imageVal
       : "briefcase-outline";
 
+  const categoryColor = item.serviceType === "Bull-Tır" ? "#E67E22" : "#28A745";
+
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate("JobDetail", { job: item })}
+      activeOpacity={0.7}
     >
-      <View style={styles.cardHeader}>
-        <View style={styles.cardInfoContainer}>
-          <View style={styles.imageContainer}>
-            {isUrl ? (
-              <Image source={{ uri: imageVal }} style={styles.cardImage} />
-            ) : (
-              <Ionicons name={iconName} size={24} color="#003366" />
-            )}
+      <View style={[styles.cardAccent, { backgroundColor: categoryColor }]} />
+      <View style={styles.cardBody}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardInfoContainer}>
+            <View style={[styles.imageContainer, { borderColor: categoryColor + '30' }]}>
+              {isUrl ? (
+                <Image source={{ uri: imageVal }} style={styles.cardImage} />
+              ) : (
+                <Ionicons name={iconName} size={22} color={categoryColor} />
+              )}
+            </View>
+            <View style={styles.titleContainer}>
+              <Text style={styles.jobTitle} numberOfLines={1}>{item.title}</Text>
+              <Text style={styles.subText} numberOfLines={1}>{item.company}</Text>
+            </View>
           </View>
-          <View style={styles.titleContainer}>
-            <Text style={styles.jobTitle}>{item.title}</Text>
-            <Text style={styles.subText}>{item.company}</Text>
+          <View style={[styles.ratingBadge, { backgroundColor: '#FFF8E7' }]}>
+            <Ionicons name="star" size={11} color="#E5A100" />
+            <Text style={styles.ratingText}>{item.rating || "5.0"}</Text>
           </View>
         </View>
-        <View style={styles.ratingBadge}>
-          <Ionicons name="star" size={10} color="#FFF" />
-          <Text style={styles.ratingText}>{item.rating || "5.0"}</Text>
+        <View style={styles.cardFooter}>
+          <View style={styles.locationContainer}>
+            <Ionicons name="location-outline" size={14} color="#8C95A3" />
+            <Text style={styles.location} numberOfLines={1}>{item.location}</Text>
+          </View>
+          <View style={styles.priceTag}>
+            <Text style={styles.price}>{item.price} ₺</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.cardFooter}>
-        <View style={styles.locationContainer}>
-          <Ionicons name="location-outline" size={14} color="#94A3B8" />
-          <Text style={styles.location}>{item.location}</Text>
-        </View>
-        <Text style={styles.price}>{item.price} TL</Text>
       </View>
     </TouchableOpacity>
   );
@@ -160,17 +168,38 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* HEADER */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>
-            {/* Eğer user.name varsa onu, yoksa "Vezir" yazdır */}
-            Merhaba, {user?.name ? user.name : "Vezir"} 👋
-          </Text>
-          <Text style={styles.subTitle}>
-            {USER_ROLE === "worker"
-              ? "Sana uygun en güncel işleri listeledik"
-              : "İşletmen için en yetenekli personeller"}
-          </Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.welcomeText}>
+              Merhaba, {user?.name ? user.name : "Vezir"} 👋
+            </Text>
+            <Text style={styles.subTitle}>
+              {USER_ROLE === "worker"
+                ? "Sana uygun en güncel işleri listeledik"
+                : "İşletmen için en yetenekli personeller"}
+            </Text>
+          </View>
+        </View>
+
+        {/* ARAMA */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={18} color="#8C95A3" />
+          <TextInput
+            placeholder={
+              USER_ROLE === "worker" ? "İş veya şirket ara..." : "Personel ara..."
+            }
+            style={styles.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            placeholderTextColor="#B8BEC7"
+          />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch("")}>
+              <Ionicons name="close-circle" size={18} color="#B8BEC7" />
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
 
@@ -181,44 +210,32 @@ export default function HomeScreen() {
           onPress={() => setActiveTab("Bull-Part")}
           activeOpacity={0.8}
         >
-          <Ionicons name="construct-outline" size={18} color={activeTab === "Bull-Part" ? "#FFF" : "#64748B"} />
+          <Ionicons name="construct-outline" size={16} color={activeTab === "Bull-Part" ? "#FFF" : "#6B7280"} />
           <Text style={[styles.tabText, activeTab === "Bull-Part" && styles.activeTabText]}>BULL PART</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === "Bull-Tır" && styles.activeTab]}
+          style={[styles.tab, activeTab === "Bull-Tır" && styles.activeTabTir]}
           onPress={() => setActiveTab("Bull-Tır")}
           activeOpacity={0.8}
         >
-          <Ionicons name="bus-outline" size={18} color={activeTab === "Bull-Tır" ? "#FFF" : "#64748B"} />
+          <Ionicons name="bus-outline" size={16} color={activeTab === "Bull-Tır" ? "#FFF" : "#6B7280"} />
           <Text style={[styles.tabText, activeTab === "Bull-Tır" && styles.activeTabText]}>BULL LOJİSTİK</Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#64748B" />
-        <TextInput
-          placeholder={
-            USER_ROLE === "worker" ? "İş veya şirket ara..." : "Personel ara..."
-          }
-          style={styles.searchInput}
-          value={search}
-          onChangeText={setSearch}
-        />
       </View>
 
       {/* SIRALA & FİLTRELE BUTONLARI */}
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.actionBtn} onPress={() => setShowSortModal(true)}>
-          <Ionicons name="swap-vertical-outline" size={16} color="#003366" />
+          <Ionicons name="swap-vertical-outline" size={15} color="#003366" />
           <Text style={styles.actionBtnText}>
-            Sırala: {SORT_OPTIONS.find(o => o.key === sortBy)?.label}
+            {SORT_OPTIONS.find(o => o.key === sortBy)?.label}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionBtn, activeFilterCount > 0 && styles.actionBtnActive]}
           onPress={() => setShowFilterModal(true)}
         >
-          <Ionicons name="filter-outline" size={16} color={activeFilterCount > 0 ? "#FFF" : "#003366"} />
+          <Ionicons name="options-outline" size={15} color={activeFilterCount > 0 ? "#FFF" : "#003366"} />
           <Text style={[styles.actionBtnText, activeFilterCount > 0 && { color: "#FFF" }]}>
             Filtrele{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </Text>
@@ -239,14 +256,17 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <JobCard item={item} navigation={navigation} />
         )}
-        contentContainerStyle={{ padding: 20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 100 }}
         onRefresh={fetchJobs}
         refreshing={loading}
         ListEmptyComponent={() =>
           !loading && (
             <View style={styles.emptyContainer}>
-              <Ionicons name="alert-circle-outline" size={50} color="#E2E8F0" />
-              <Text style={styles.emptyText}>Henüz bir kayıt bulunamadı.</Text>
+              <View style={styles.emptyIconBg}>
+                <Ionicons name="search-outline" size={36} color="#B8BEC7" />
+              </View>
+              <Text style={styles.emptyTitle}>Henüz bir kayıt bulunamadı</Text>
+              <Text style={styles.emptyText}>Filtreleri değiştirmeyi veya aşağıdan yeni ilan oluşturmayı deneyin.</Text>
             </View>
           )
         }
@@ -277,8 +297,9 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.fab}
           onPress={() => navigation.navigate("PostJob")}
+          activeOpacity={0.85}
         >
-          <Ionicons name="add" size={32} color="#FFF" />
+          <Ionicons name="add" size={28} color="#FFF" />
         </TouchableOpacity>
       )}
 
@@ -294,9 +315,11 @@ export default function HomeScreen() {
                 style={[styles.modalOption, sortBy === opt.key && styles.modalOptionActive]}
                 onPress={() => { setSortBy(opt.key); setShowSortModal(false); }}
               >
-                <Ionicons name={opt.icon} size={20} color={sortBy === opt.key ? "#003366" : "#64748B"} />
+                <View style={[styles.modalOptionIcon, sortBy === opt.key && { backgroundColor: '#003366' }]}>
+                  <Ionicons name={opt.icon} size={18} color={sortBy === opt.key ? "#FFF" : "#6B7280"} />
+                </View>
                 <Text style={[styles.modalOptionText, sortBy === opt.key && styles.modalOptionTextActive]}>{opt.label}</Text>
-                {sortBy === opt.key && <Ionicons name="checkmark-circle" size={20} color="#003366" />}
+                {sortBy === opt.key && <Ionicons name="checkmark" size={18} color="#003366" />}
               </TouchableOpacity>
             ))}
           </View>
@@ -311,7 +334,8 @@ export default function HomeScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Filtrele</Text>
               {activeFilterCount > 0 && (
-                <TouchableOpacity onPress={clearFilters}>
+                <TouchableOpacity onPress={clearFilters} style={styles.clearFilterBtn}>
+                  <Ionicons name="trash-outline" size={14} color="#EF4444" />
                   <Text style={styles.clearFilterText}>Temizle</Text>
                 </TouchableOpacity>
               )}
@@ -340,17 +364,17 @@ export default function HomeScreen() {
 
             <Text style={styles.filterSectionTitle}>Şehir</Text>
             <View style={styles.filterCityInput}>
-              <Ionicons name="location-outline" size={18} color="#64748B" />
+              <Ionicons name="location-outline" size={18} color="#8C95A3" />
               <TextInput
                 style={styles.filterCityText}
                 placeholder="Şehir yazın (ör: İstanbul)"
                 value={filterCity}
                 onChangeText={setFilterCity}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor="#B8BEC7"
               />
               {filterCity ? (
                 <TouchableOpacity onPress={() => setFilterCity("")}>
-                  <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                  <Ionicons name="close-circle" size={18} color="#B8BEC7" />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -369,59 +393,80 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
-  header: { padding: 20, paddingBottom: 10 },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#003366" },
-  subTitle: { fontSize: 14, color: "#64748B", marginTop: 4 },
+  container: { flex: 1, backgroundColor: "#F6F4F0" },
+  header: { 
+    backgroundColor: "#FFF",
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: "#1B2E4B",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  headerTop: {
+    marginBottom: 14,
+  },
+  welcomeText: { fontSize: 22, fontWeight: "800", color: "#1A1D21" },
+  subTitle: { fontSize: 13, color: "#6B7280", marginTop: 3, fontWeight: "500" },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F6F4F0",
+    paddingHorizontal: 14,
+    height: 48,
+    borderRadius: 14,
+  },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 15, color: "#1A1D21", fontWeight: "500" },
   tabContainer: {
     flexDirection: "row",
     marginHorizontal: 20,
-    backgroundColor: "#E2E8F0",
+    marginTop: 16,
+    backgroundColor: "#EDEAE4",
     borderRadius: 14,
     padding: 4,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   tab: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
+    paddingVertical: 11,
     borderRadius: 11,
     gap: 6,
   },
   activeTab: {
     backgroundColor: "#003366",
-    elevation: 3,
     shadowColor: "#003366",
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  activeTabTir: {
+    backgroundColor: "#E67E22",
+    shadowColor: "#E67E22",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
-    color: "#64748B",
+    color: "#6B7280",
   },
   activeTabText: {
     color: "#FFFFFF",
   },
-  searchContainer: {
-    marginHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    paddingHorizontal: 15,
-    height: 50,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  searchInput: { flex: 1, marginLeft: 10, fontSize: 16 },
   actionRow: {
     flexDirection: "row",
     marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 4,
     gap: 10,
   },
@@ -432,40 +477,42 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#FFF",
     paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderRadius: 12,
     gap: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   actionBtnActive: {
     backgroundColor: "#003366",
-    borderColor: "#003366",
   },
   actionBtnText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#003366",
   },
   // Modal Stilleri
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "flex-end",
   },
   modalContent: {
     backgroundColor: "#FFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 24,
     paddingBottom: 40,
   },
   modalHandle: {
-    width: 40,
+    width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#DDDAD4",
     alignSelf: "center",
-    marginBottom: 16,
+    marginBottom: 20,
   },
   modalHeader: {
     flexDirection: "row",
@@ -475,64 +522,79 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#003366",
+    fontWeight: "800",
+    color: "#1A1D21",
     marginBottom: 16,
   },
   modalOption: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 13,
     paddingHorizontal: 12,
-    borderRadius: 12,
-    marginBottom: 6,
+    borderRadius: 14,
+    marginBottom: 4,
     gap: 12,
   },
   modalOptionActive: {
     backgroundColor: "#F0F5FF",
   },
+  modalOptionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#F3F1ED",
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   modalOptionText: {
     flex: 1,
     fontSize: 15,
-    color: "#475569",
+    color: "#4A5568",
+    fontWeight: "500",
   },
   modalOptionTextActive: {
     color: "#003366",
-    fontWeight: "bold",
+    fontWeight: "700",
+  },
+  clearFilterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
   },
   clearFilterText: {
     color: "#EF4444",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
   },
   filterSectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
-    color: "#64748B",
+    color: "#6B7280",
     marginBottom: 10,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   filterChipsRow: {
     flexDirection: "row",
     gap: 8,
   },
   filterChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F3F1ED",
   },
   filterChipActive: {
     backgroundColor: "#003366",
-    borderColor: "#003366",
   },
   filterChipText: {
     fontSize: 13,
-    color: "#475569",
-    fontWeight: "500",
+    color: "#4A5568",
+    fontWeight: "600",
   },
   filterChipTextActive: {
     color: "#FFF",
@@ -540,104 +602,121 @@ const styles = StyleSheet.create({
   filterCityInput: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 12,
+    backgroundColor: "#F6F4F0",
+    borderRadius: 14,
     paddingHorizontal: 14,
     height: 48,
-    marginBottom: 20,
+    marginBottom: 24,
     gap: 8,
   },
   filterCityText: {
     flex: 1,
     fontSize: 15,
-    color: "#1E293B",
+    color: "#1A1D21",
   },
   filterApplyBtn: {
-    backgroundColor: "#003366",
-    borderRadius: 14,
+    backgroundColor: "#28A745",
+    borderRadius: 16,
     paddingVertical: 16,
     alignItems: "center",
   },
   filterApplyBtnText: {
     color: "#FFF",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "800",
   },
+  // KART
   card: {
     backgroundColor: "#FFF",
-    padding: 16,
     borderRadius: 16,
-    marginBottom: 15,
+    marginBottom: 12,
+    flexDirection: "row",
+    overflow: "hidden",
+    shadowColor: "#1B2E4B",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+  },
+  cardAccent: {
+    width: 4,
+  },
+  cardBody: {
+    flex: 1,
+    padding: 14,
+    paddingLeft: 12,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  cardInfoContainer: { flexDirection: "row", alignItems: "center" },
+  cardInfoContainer: { flexDirection: "row", alignItems: "center", flex: 1 },
   imageContainer: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    backgroundColor: "#F6F4F0",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
   },
-  cardImage: { width: 44, height: 44, borderRadius: 22 },
-  titleContainer: { marginLeft: 12 },
-  jobTitle: { fontSize: 16, fontWeight: "bold", color: "#1E293B" },
+  cardImage: { width: 44, height: 44, borderRadius: 12 },
+  titleContainer: { marginLeft: 12, flex: 1 },
+  jobTitle: { fontSize: 15, fontWeight: "700", color: "#1A1D21" },
   ratingBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#28A745",
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderRadius: 8,
+    gap: 3,
   },
   ratingText: {
-    color: "#FFF",
+    color: "#B8860B",
     fontSize: 12,
-    fontWeight: "bold",
-    marginLeft: 4,
+    fontWeight: "800",
   },
-  subText: { color: "#64748B", fontSize: 13, marginTop: 2 },
+  subText: { color: "#6B7280", fontSize: 12, marginTop: 2 },
   cardFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 12,
     alignItems: "center",
   },
-  locationContainer: { flexDirection: "row", alignItems: "center" },
-  location: { color: "#94A3B8", fontSize: 12, marginLeft: 4 },
-  price: { color: "#28A745", fontWeight: "bold", fontSize: 15 },
+  locationContainer: { flexDirection: "row", alignItems: "center", flex: 1 },
+  location: { color: "#8C95A3", fontSize: 12, marginLeft: 4 },
+  priceTag: {
+    backgroundColor: "#E8F5EC",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  price: { color: "#1B7A30", fontWeight: "800", fontSize: 14 },
   fab: {
     position: "absolute",
-    bottom: 30,
+    bottom: 24,
     right: 20,
     backgroundColor: "#003366",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5,
+    elevation: 8,
+    shadowColor: "#003366",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
   fabEmployer: {
     position: "absolute",
-    bottom: 24,
+    bottom: 20,
     left: 20,
     right: 20,
     backgroundColor: "#003366",
-    borderRadius: 20,
-    elevation: 8,
+    borderRadius: 18,
+    elevation: 10,
     shadowColor: "#003366",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
@@ -653,7 +732,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.15)",
+    backgroundColor: "rgba(255,255,255,0.12)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -668,11 +747,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   fabEmployerSub: {
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(255,255,255,0.5)",
     fontSize: 12,
     marginTop: 2,
     fontWeight: "500",
   },
-  emptyContainer: { alignItems: "center", marginTop: 80 },
-  emptyText: { color: "#64748B", marginTop: 10, fontSize: 16 },
+  emptyContainer: { alignItems: "center", marginTop: 80, paddingHorizontal: 40 },
+  emptyIconBg: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: "#EDEAE4",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  emptyTitle: { color: "#4A5568", fontSize: 17, fontWeight: "700", marginBottom: 6 },
+  emptyText: { color: "#8C95A3", fontSize: 14, textAlign: "center", lineHeight: 20 },
 });

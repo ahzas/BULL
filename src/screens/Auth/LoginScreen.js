@@ -22,6 +22,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const navigation = useNavigation();
   const { login } = useContext(AuthContext);
@@ -71,40 +72,60 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.rootContainer}>
+      {/* Üst Koyu Alan - Marka Kimliği */}
+      <View style={styles.brandSection}>
+        <SafeAreaView edges={['top']}>
+          <View style={styles.brandContent}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>B</Text>
+            </View>
+            <Text style={styles.appName}>BULL</Text>
+            <Text style={styles.tagline}>Güçlü İş, Hızlı Çözüm</Text>
+          </View>
+        </SafeAreaView>
+      </View>
+
+      {/* Alt Form Alanı */}
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.content}
+        style={styles.formSection}
       >
-        <View style={styles.header}>
-          <Text style={styles.appName}>BULL</Text>
-          <Text style={styles.tagline}>Güçlü İş, Hızlı Çözüm</Text>
-        </View>
-
-        <View style={styles.form}>
+        <View style={styles.formCard}>
+          <Text style={styles.formTitle}>Hesabına Giriş Yap</Text>
+          
           <View style={styles.inputContainer}>
             <Text style={styles.label}>E-Posta Adresi</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="ornek@bull.com"
-              placeholderTextColor="#94A3B8"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+            <View style={styles.inputWrapper}>
+              <Ionicons name="mail-outline" size={18} color="#8C95A3" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="ornek@bull.com"
+                placeholderTextColor="#B8BEC7"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Şifre</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="******"
-              placeholderTextColor="#94A3B8"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+            <View style={styles.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={18} color="#8C95A3" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="••••••"
+                placeholderTextColor="#B8BEC7"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#8C95A3" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* BENİ HATIRLA & ŞİFREMİ UNUTTUM */}
@@ -114,11 +135,9 @@ export default function LoginScreen() {
               onPress={() => setRememberMe(!rememberMe)}
               activeOpacity={0.7}
             >
-              <Ionicons 
-                name={rememberMe ? "checkbox" : "square-outline"} 
-                size={22} 
-                color={rememberMe ? "#28A745" : "#64748B"} 
-              />
+              <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                {rememberMe && <Ionicons name="checkmark" size={14} color="#FFF" />}
+              </View>
               <Text style={styles.rememberText}>Beni Hatırla</Text>
             </TouchableOpacity>
 
@@ -134,11 +153,15 @@ export default function LoginScreen() {
             style={[styles.button, loading && styles.buttonDisabled]} 
             onPress={handleLogin}
             disabled={loading}
+            activeOpacity={0.85}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.buttonText}>Giriş Yap</Text>
+              <View style={styles.buttonInner}>
+                <Text style={styles.buttonText}>Giriş Yap</Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFF" />
+              </View>
             )}
           </TouchableOpacity>
 
@@ -152,73 +175,130 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  rootContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#003366',
   },
-  content: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
+  brandSection: {
+    paddingBottom: 30,
   },
-  header: {
-    marginBottom: 40,
+  brandContent: {
     alignItems: 'center',
+    paddingTop: 40,
+    paddingBottom: 10,
+  },
+  logoContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  logoText: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#FFF',
   },
   appName: {
-    fontSize: 48,
+    fontSize: 32,
     fontWeight: '900',
-    color: '#003366',
-    letterSpacing: 2,
+    color: '#FFFFFF',
+    letterSpacing: 4,
   },
   tagline: {
-    fontSize: 16,
-    color: '#475569',
-    marginTop: 5,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 6,
     fontWeight: '500',
+    letterSpacing: 0.5,
   },
-  form: {
-    width: '100%',
+  formSection: {
+    flex: 1,
+    backgroundColor: '#F6F4F0',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
+  formCard: {
+    flex: 1,
+    paddingHorizontal: 28,
+    paddingTop: 32,
+  },
+  formTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1A1D21',
+    marginBottom: 28,
   },
   inputContainer: {
     marginBottom: 20,
   },
   label: {
-    color: '#1E293B',
+    color: '#4A5568',
     marginBottom: 8,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    marginLeft: 4,
+    marginLeft: 2,
+    letterSpacing: 0.2,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    height: 54,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: '#E8E4DE',
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
-    backgroundColor: '#F8FAFC',
-    height: 56,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    color: '#0F172A',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    fontSize: 16,
+    flex: 1,
+    color: '#1A1D21',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  eyeBtn: {
+    padding: 4,
   },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 4,
+    marginBottom: 28,
+    paddingHorizontal: 2,
   },
   rememberBtn: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#CBD2DA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+  },
+  checkboxActive: {
+    backgroundColor: '#003366',
+    borderColor: '#003366',
+  },
   rememberText: {
-    marginLeft: 8,
-    color: '#64748B',
+    marginLeft: 10,
+    color: '#4A5568',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -226,44 +306,46 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   forgotText: {
-    color: '#64748B',
+    color: '#003366',
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   button: {
     backgroundColor: '#28A745',
     height: 56,
-    borderRadius: 12,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#28A745',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowColor: '#1B7A30',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
   buttonDisabled: {
     opacity: 0.7,
   },
+  buttonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   linkButton: {
-    marginTop: 24,
+    marginTop: 28,
     alignItems: 'center',
   },
   linkText: {
-    color: '#64748B',
+    color: '#4A5568',
     fontSize: 15,
   },
   boldText: {
     color: '#003366',
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
 });

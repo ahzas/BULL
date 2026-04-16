@@ -203,7 +203,7 @@ export default function BusinessProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: '#F6F4F0',
     },
     center: {
         flex: 1,
@@ -214,13 +214,13 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     headerTitle: {
-        fontSize: 28,
-        fontWeight: '900',
-        color: '#003366',
+        fontSize: 26,
+        fontWeight: '800',
+        color: '#1A1D21',
     },
     headerSub: {
         fontSize: 14,
-        color: '#64748B',
+        color: '#6B7280',
         marginBottom: 25,
     },
     formGroup: {
@@ -229,14 +229,14 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1E293B',
+        color: '#1A1D21',
         marginBottom: 8,
     },
     input: {
         backgroundColor: '#FFFFFF',
         borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderRadius: 10,
+        borderColor: '#E8E4DE',
+        borderRadius: 14,
         padding: 15,
         fontSize: 16,
     },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     mainButton: {
         backgroundColor: '#28A745',
         padding: 18,
-        borderRadius: 12,
+        borderRadius: 16,
         alignItems: 'center',
         marginTop: 20,
     },
@@ -259,9 +259,9 @@ const styles = StyleSheet.create({
     businessCard: {
         backgroundColor: '#FFFFFF',
         padding: 20,
-        borderRadius: 15,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
+        borderRadius: 18,
+        shadowColor: '#1B2E4B',
+        shadowOpacity: 0.04,
         shadowRadius: 10,
         elevation: 3,
         marginBottom: 30,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1E293B',
+        color: '#1A1D21',
     },
     sectionSub: {
         fontSize: 13,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         paddingVertical: 8,
         borderRadius: 8,
-        backgroundColor: '#F1F5F9',
+        backgroundColor: '#F3F1ED',
     },
     viewBtnText: {
         fontSize: 12,

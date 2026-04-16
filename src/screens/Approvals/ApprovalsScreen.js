@@ -118,24 +118,34 @@ export default function ApprovalsScreen({ navigation }) {
   const renderHireItem = ({ item }) => {
     return (
       <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.jobTitle}>{item.title}</Text>
-          <Text style={styles.jobSub}>
-            Başvuru Sayısı: {item.applicants.length}
-          </Text>
+        <View style={styles.cardTop}>
+          <View style={[styles.cardIconBox, { backgroundColor: '#EEF2FF' }]}>
+            <Ionicons name="briefcase" size={18} color="#003366" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.jobTitle}>{item.title}</Text>
+            <Text style={styles.jobSub}>
+              {item.applicants.length} başvuru
+            </Text>
+          </View>
         </View>
         <View style={styles.divider} />
 
-        <Text style={styles.applicantHeader}>Başvuranlar:</Text>
+        <Text style={styles.applicantHeader}>Başvuranlar</Text>
         {item.applicants.map((worker) => (
           <View key={worker._id || worker.id} style={styles.applicantRow}>
-            <View>
+            <View style={styles.applicantAvatar}>
+              <Text style={styles.applicantInitial}>
+                {(worker.name || "?")[0].toUpperCase()}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
               <Text style={styles.workerName}>
                 {worker.name || "İsimsiz İşçi"}
               </Text>
               <Text style={styles.workerRating}>
                 ⭐ {worker.rating ? worker.rating.toFixed(1) : "5.0"}
-                <Text style={{ fontSize: 11, color: "#64748B", fontWeight: "normal" }}> ({worker.ratingCount || 0} Değerlendirme)</Text>
+                <Text style={{ fontSize: 11, color: "#8C95A3", fontWeight: "normal" }}> ({worker.ratingCount || 0})</Text>
               </Text>
             </View>
             <TouchableOpacity
@@ -148,6 +158,7 @@ export default function ApprovalsScreen({ navigation }) {
                 )
               }
             >
+              <Ionicons name="checkmark" size={16} color="#FFF" />
               <Text style={styles.hireText}>İşe Al</Text>
             </TouchableOpacity>
           </View>
@@ -161,20 +172,24 @@ export default function ApprovalsScreen({ navigation }) {
     const owner = item.ownerId;
     return (
       <View style={styles.card}>
-        <View style={styles.cardHeaderCol}>
-          <Text style={styles.jobTitle}>{item.title}</Text>
-          <Text style={styles.jobSub}>
-            {owner?.name || owner?.company || item.company || "İşveren"}
-          </Text>
+        <View style={styles.cardTop}>
+          <View style={[styles.cardIconBox, { backgroundColor: '#FFF4E5' }]}>
+            <Ionicons name="time" size={18} color="#E67E22" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.jobTitle}>{item.title}</Text>
+            <Text style={styles.jobSub}>
+              {owner?.name || owner?.company || item.company || "İşveren"}
+            </Text>
+          </View>
         </View>
         <View style={styles.divider} />
         <View style={styles.statusRow}>
-          <Ionicons
-            name="time-outline"
-            size={20}
-            color="#F59E0B"
-          />
-          <Text style={styles.statusText}>
+          <View style={styles.statusPill}>
+            <Ionicons name="hourglass-outline" size={14} color="#E67E22" />
+            <Text style={styles.statusPillText}>Onay Bekleniyor</Text>
+          </View>
+          <Text style={styles.statusDesc}>
             Başvurunuz iletildi. İşverenin onayı bekleniyor.
           </Text>
         </View>
@@ -191,24 +206,32 @@ export default function ApprovalsScreen({ navigation }) {
 
     return (
       <View style={styles.card}>
-        <View style={styles.cardHeaderCol}>
-          <Text style={styles.jobTitle}>{item.title}</Text>
-          <Text
-            style={[styles.jobSub, { color: "#28A745", fontWeight: "bold" }]}
-          >
-            Aktif Çalışma - {item.price} ₺
-          </Text>
+        <View style={styles.cardTop}>
+          <View style={[styles.cardIconBox, { backgroundColor: '#E8F5EC' }]}>
+            <Ionicons name="checkmark-done" size={18} color="#28A745" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.jobTitle}>{item.title}</Text>
+            <Text style={[styles.jobSub, { color: "#1B7A30", fontWeight: "700" }]}>
+              Aktif Çalışma — {item.price} ₺
+            </Text>
+          </View>
         </View>
 
         <View style={styles.divider} />
 
         <View style={styles.statusRow}>
-          <Ionicons
-            name="information-circle-outline"
-            size={20}
-            color="#F59E0B"
-          />
-          <Text style={styles.statusText}>
+          <View style={[styles.statusPill, hasApproved && { backgroundColor: '#E8F5EC' }]}>
+            <Ionicons
+              name={hasApproved ? "checkmark-circle" : "information-circle-outline"}
+              size={14}
+              color={hasApproved ? "#28A745" : "#E67E22"}
+            />
+            <Text style={[styles.statusPillText, hasApproved && { color: "#28A745" }]}>
+              {hasApproved ? "Onaylandı" : "Bekliyor"}
+            </Text>
+          </View>
+          <Text style={styles.statusDesc}>
             {hasApproved
               ? "Siz onayladınız. Diğer tarafın onayı bekleniyor."
               : "Çalışma devam ediyor. Bittiğinde onaylayınız."}
@@ -219,6 +242,7 @@ export default function ApprovalsScreen({ navigation }) {
           <TouchableOpacity
             style={styles.completionButton}
             onPress={() => handleApproveCompletion(item._id || item.id)}
+            activeOpacity={0.85}
           >
             <Ionicons
               name="checkmark-done-circle"
@@ -299,13 +323,12 @@ export default function ApprovalsScreen({ navigation }) {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={64}
-                color="#CBD5E1"
-              />
+              <View style={styles.emptyIcon}>
+                <Ionicons name="checkmark-circle-outline" size={40} color="#B8BEC7" />
+              </View>
+              <Text style={styles.emptyTitle}>Bekleyen işlem yok</Text>
               <Text style={styles.emptyText}>
-                Bekleyen herhangi bir işlem yok.
+                Herhangi bir onay bekleyen işlem bulunmuyor.
               </Text>
             </View>
           }
@@ -316,105 +339,149 @@ export default function ApprovalsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F6F4F0" },
   header: { padding: 20 },
-  headerTitle: { fontSize: 24, fontWeight: "bold", color: "#003366" },
+  headerTitle: { fontSize: 24, fontWeight: "800", color: "#1A1D21" },
 
   // TAB STİLLERİ
   tabContainer: {
     flexDirection: "row",
     marginHorizontal: 20,
-    backgroundColor: "#E2E8F0",
-    borderRadius: 12,
+    backgroundColor: "#EDEAE4",
+    borderRadius: 14,
     padding: 4,
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  tab: { flex: 1, paddingVertical: 10, alignItems: "center", borderRadius: 10 },
+  tab: { flex: 1, paddingVertical: 11, alignItems: "center", borderRadius: 11 },
   activeTab: {
     backgroundColor: "#FFFFFF",
-    elevation: 2,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  tabText: { fontSize: 13, fontWeight: "600", color: "#64748B" },
-  activeTabText: { color: "#003366" },
+  tabText: { fontSize: 13, fontWeight: "700", color: "#6B7280" },
+  activeTabText: { color: "#1A1D21" },
 
   listPadding: { paddingHorizontal: 20, paddingBottom: 40 },
 
   // KART
   card: {
     backgroundColor: "#FFF",
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    elevation: 2,
+    marginBottom: 14,
+    shadowColor: "#1B2E4B",
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 1,
   },
-  cardHeader: {
+  cardTop: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+  },
+  cardIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    justifyContent: "center",
     alignItems: "center",
   },
-  cardHeaderCol: { flexDirection: "column" },
   jobTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#1E293B",
-    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1A1D21",
+    marginBottom: 2,
   },
-  jobSub: { fontSize: 13, color: "#64748B" },
-  divider: { height: 1, backgroundColor: "#F1F5F9", marginVertical: 12 },
+  jobSub: { fontSize: 13, color: "#6B7280" },
+  divider: { height: 1, backgroundColor: "#F3F1ED", marginVertical: 12 },
 
   // BAŞVURU KISMI
   applicantHeader: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#64748B",
-    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#8C95A3",
+    marginBottom: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
   },
   applicantRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F6F4F0",
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
   },
-  workerName: { fontSize: 15, fontWeight: "bold", color: "#003366" },
+  applicantAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: "#003366",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  applicantInitial: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  workerName: { fontSize: 15, fontWeight: "700", color: "#1A1D21" },
   workerRating: {
     fontSize: 12,
-    color: "#D97706",
+    color: "#E5A100",
     marginTop: 2,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   hireButton: {
     backgroundColor: "#003366",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 12,
   },
-  hireText: { color: "#FFF", fontSize: 13, fontWeight: "bold" },
+  hireText: { color: "#FFF", fontSize: 13, fontWeight: "700" },
 
   // ONAY KISMI
-  statusRow: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
-  statusText: { flex: 1, fontSize: 13, color: "#475569", marginLeft: 8 },
+  statusRow: { marginBottom: 12 },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF4E5',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    gap: 5,
+    marginBottom: 8,
+  },
+  statusPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#E67E22',
+  },
+  statusDesc: { fontSize: 13, color: "#4A5568", lineHeight: 18 },
   completionButton: {
     backgroundColor: "#28A745",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
   },
-  completionBtnText: { color: "#FFF", fontSize: 15, fontWeight: "bold" },
+  completionBtnText: { color: "#FFF", fontSize: 15, fontWeight: "800" },
 
   // BOŞ VE YÜKLENİYOR
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyContainer: { flex: 1, alignItems: "center", marginTop: 100 },
-  emptyText: { marginTop: 15, color: "#94A3B8", fontSize: 15 },
+  emptyContainer: { flex: 1, alignItems: "center", marginTop: 80, paddingHorizontal: 40 },
+  emptyIcon: {
+    width: 72, height: 72, borderRadius: 20, backgroundColor: '#EDEAE4',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 16,
+  },
+  emptyTitle: { fontSize: 17, fontWeight: "700", color: "#4A5568", marginBottom: 6 },
+  emptyText: { color: "#8C95A3", fontSize: 14, textAlign: 'center', lineHeight: 20 },
 });

@@ -112,58 +112,62 @@ export default function MyJobsScreen() {
 
     return (
       <View style={styles.jobCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.titleCol}>
-            <Text style={styles.jobTitle}>{item.title}</Text>
-            <Text style={styles.companyName}>{item.company}</Text>
+        <View style={[styles.cardLeftBorder, { backgroundColor: isCompleted ? "#28A745" : "#003366" }]} />
+        <View style={styles.cardContent}>
+          <View style={styles.cardHeader}>
+            <View style={styles.titleCol}>
+              <Text style={styles.jobTitle}>{item.title}</Text>
+              <Text style={styles.companyName}>{item.company}</Text>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: isCompleted ? "#E8F5EC" : "#EEF2FF" }]}>
+              <View style={[styles.statusDot, { backgroundColor: isCompleted ? "#28A745" : "#003366" }]} />
+              <Text style={[styles.statusText, { color: isCompleted ? "#1B7A30" : "#003366" }]}>
+                {isCompleted ? "Tamamlandı" : "Aktif"}
+              </Text>
+            </View>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: isCompleted ? "#DCFCE7" : "#DBEAFE" }]}>
-            <Text style={[styles.statusText, { color: isCompleted ? "#166534" : "#1E40AF" }]}>
-              {isCompleted ? "Tamamlandı" : "Aktif"}
-            </Text>
-          </View>
-        </View>
 
-        <View style={styles.cardDivider} />
+          <View style={styles.cardDivider} />
 
-        <View style={styles.cardFooter}>
-          <View style={{ flex: 1 }}>
-            <View style={styles.infoRow}>
-              <Ionicons name="calendar-outline" size={16} color="#64748B" />
-              <Text style={styles.infoText}>{dateStr}</Text>
+          <View style={styles.cardFooter}>
+            <View style={{ flex: 1 }}>
+              <View style={styles.infoRow}>
+                <Ionicons name="calendar-outline" size={15} color="#8C95A3" />
+                <Text style={styles.infoText}>{dateStr}</Text>
+              </View>
+
+              {isCompleted && profileToShow && (
+                <View style={[styles.infoRow, { marginTop: 6 }]}>
+                  <Ionicons name="person-circle-outline" size={15} color="#003366" />
+                  <Text style={[styles.infoText, { color: "#003366", fontWeight: "700" }]}>
+                    {profileName}{" "}
+                    <Text style={{ fontWeight: "normal", color: "#8C95A3" }}>
+                      (⭐{profileRating.toFixed(1)} - {profileRatingCount})
+                    </Text>
+                  </Text>
+                </View>
+              )}
+
+              {canRate && (
+                <TouchableOpacity 
+                  style={styles.rateButton} 
+                  onPress={() => {
+                    setSelectedJobToRate(item);
+                    setRating(0);
+                    setRateModalVisible(true);
+                  }}
+                >
+                  <Ionicons name="star" color="#FFF" size={13} />
+                  <Text style={styles.rateButtonText}>
+                     {isOwner ? "İşçiyi Puanla" : "İşvereni Puanla"}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
 
-            {isCompleted && profileToShow && (
-              <View style={[styles.infoRow, { marginTop: 6 }]}>
-                <Ionicons name="person-circle-outline" size={16} color="#003366" />
-                <Text style={[styles.infoText, { color: "#003366", fontWeight: "bold" }]}>
-                  {profileName}{" "}
-                  <Text style={{ fontWeight: "normal", color: "#64748B" }}>
-                    (⭐{profileRating.toFixed(1)} - {profileRatingCount} Değerlendirme)
-                  </Text>
-                </Text>
-              </View>
-            )}
-
-            {canRate && (
-              <TouchableOpacity 
-                style={styles.rateButton} 
-                onPress={() => {
-                  setSelectedJobToRate(item);
-                  setRating(0);
-                  setRateModalVisible(true);
-                }}
-              >
-                <Ionicons name="star" color="#FFF" size={14} />
-                <Text style={styles.rateButtonText}>
-                   {isOwner ? "İşçiyi Puanla" : "İşvereni Puanla"}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={styles.priceCol}>
-            <Text style={styles.priceValue}>{item.price} ₺</Text>
+            <View style={styles.priceCol}>
+              <Text style={styles.priceValue}>{item.price} ₺</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -181,16 +185,18 @@ export default function MyJobsScreen() {
           style={[styles.tab, activeTab === "active" && styles.activeTab]}
           onPress={() => setActiveTab("active")}
         >
+          <View style={[styles.tabDot, activeTab === "active" && { backgroundColor: '#003366' }]} />
           <Text style={[styles.tabText, activeTab === "active" && styles.activeTabText]}>
-            Aktif İlanlarım ({activeJobs?.length || 0})
+            Aktif ({activeJobs?.length || 0})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === "past" && styles.activeTab]}
           onPress={() => setActiveTab("past")}
         >
+          <View style={[styles.tabDot, activeTab === "past" && { backgroundColor: '#28A745' }]} />
           <Text style={[styles.tabText, activeTab === "past" && styles.activeTabText]}>
-            Geçmiş İşler ({pastJobs?.length || 0})
+            Geçmiş ({pastJobs?.length || 0})
           </Text>
         </TouchableOpacity>
       </View>
@@ -208,7 +214,14 @@ export default function MyJobsScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#003366"]} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="briefcase-outline" size={64} color="#CBD5E1" />
+              <View style={styles.emptyIcon}>
+                <Ionicons name="briefcase-outline" size={40} color="#B8BEC7" />
+              </View>
+              <Text style={styles.emptyTitle}>
+                {activeTab === "active"
+                  ? "Aktif ilanınız yok"
+                  : "Geçmiş işiniz yok"}
+              </Text>
               <Text style={styles.emptyText}>
                 {activeTab === "active"
                   ? "Henüz aktif bir ilanınız bulunmuyor."
@@ -224,14 +237,17 @@ export default function MyJobsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Gerçek Değerlendirme</Text>
-                <TouchableOpacity onPress={() => setRateModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#EF4444" />
+                <Text style={styles.modalTitle}>Değerlendirme</Text>
+                <TouchableOpacity 
+                  style={styles.modalCloseBtn}
+                  onPress={() => setRateModalVisible(false)}
+                >
+                  <Ionicons name="close" size={20} color="#EF4444" />
                 </TouchableOpacity>
              </View>
              
-             <Text style={{textAlign: 'center', marginBottom: 20, color: '#334155'}}>
-                 İş başarıyla tamamlandı. Karşı tarafın platformdaki güvenilirlik puanını (yıldızını) belirlemek için lütfen 1 ile 5 arası bir puan verin:
+             <Text style={styles.modalDesc}>
+                 İş başarıyla tamamlandı. Karşı tarafın platformdaki güvenilirlik puanını belirlemek için lütfen 1 ile 5 arası puan verin:
              </Text>
 
              <View style={styles.starsRow}>
@@ -240,14 +256,14 @@ export default function MyJobsScreen() {
                     <Ionicons 
                       name={star <= rating ? "star" : "star-outline"} 
                       size={40} 
-                      color="#F59E0B" 
+                      color="#E5A100" 
                     />
                   </TouchableOpacity>
                 ))}
              </View>
 
              <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                 {rating > 0 && <Text style={{fontSize: 16, fontWeight: 'bold', color: '#F59E0B'}}>{rating} Yıldız</Text>}
+                 {rating > 0 && <Text style={styles.starLabel}>{rating} Yıldız</Text>}
              </View>
 
              <TouchableOpacity style={styles.submitRateBtn} onPress={handleRateSubmit}>
@@ -262,47 +278,92 @@ export default function MyJobsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F6F4F0" },
   header: { padding: 20 },
-  headerTitle: { fontSize: 24, fontWeight: "bold", color: "#003366" },
+  headerTitle: { fontSize: 24, fontWeight: "800", color: "#1A1D21" },
   tabContainer: {
-    flexDirection: "row", marginHorizontal: 20, backgroundColor: "#E2E8F0",
-    borderRadius: 12, padding: 4, marginBottom: 20,
+    flexDirection: "row", marginHorizontal: 20, backgroundColor: "#EDEAE4",
+    borderRadius: 14, padding: 4, marginBottom: 16,
   },
-  tab: { flex: 1, paddingVertical: 10, alignItems: "center", borderRadius: 10 },
-  activeTab: { backgroundColor: "#FFFFFF", elevation: 2, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4, },
-  tabText: { fontSize: 13, fontWeight: "600", color: "#64748B" },
-  activeTabText: { color: "#003366" },
+  tab: { 
+    flex: 1, paddingVertical: 11, alignItems: "center", borderRadius: 11,
+    flexDirection: 'row', justifyContent: 'center', gap: 6,
+  },
+  activeTab: { 
+    backgroundColor: "#FFFFFF", 
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6,
+    elevation: 2, 
+  },
+  tabDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#B8BEC7',
+  },
+  tabText: { fontSize: 13, fontWeight: "700", color: "#6B7280" },
+  activeTabText: { color: "#1A1D21" },
   listPadding: { paddingHorizontal: 20, paddingBottom: 40 },
   jobCard: {
-    backgroundColor: "#FFF", borderRadius: 16, padding: 16, marginBottom: 16,
-    borderWidth: 1, borderColor: "#F1F5F9", elevation: 2,
+    backgroundColor: "#FFF", borderRadius: 16, marginBottom: 12,
+    flexDirection: 'row', overflow: 'hidden',
+    shadowColor: "#1B2E4B", shadowOpacity: 0.03, shadowRadius: 8,
+    elevation: 1,
+  },
+  cardLeftBorder: {
+    width: 4,
+  },
+  cardContent: {
+    flex: 1,
+    padding: 14,
   },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", },
   titleCol: { flex: 1, paddingRight: 10 },
-  jobTitle: { fontSize: 16, fontWeight: "bold", color: "#1E293B" },
-  companyName: { fontSize: 13, color: "#64748B", marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { fontSize: 11, fontWeight: "bold" },
-  cardDivider: { height: 1, backgroundColor: "#F1F5F9", marginVertical: 12 },
+  jobTitle: { fontSize: 15, fontWeight: "700", color: "#1A1D21" },
+  companyName: { fontSize: 12, color: "#6B7280", marginTop: 2 },
+  statusBadge: { 
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, gap: 5,
+  },
+  statusDot: {
+    width: 6, height: 6, borderRadius: 3,
+  },
+  statusText: { fontSize: 11, fontWeight: "700" },
+  cardDivider: { height: 1, backgroundColor: "#F3F1ED", marginVertical: 10 },
   cardFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", },
   infoRow: { flexDirection: "row", alignItems: "center" },
-  infoText: { fontSize: 13, color: "#64748B", marginLeft: 6 },
+  infoText: { fontSize: 13, color: "#6B7280", marginLeft: 6 },
   rateButton: {
-      flexDirection: 'row', alignItems: 'center', backgroundColor: '#F59E0B',
-      paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, marginTop: 8, alignSelf: 'flex-start'
+      flexDirection: 'row', alignItems: 'center', backgroundColor: '#E5A100',
+      paddingVertical: 7, paddingHorizontal: 12, borderRadius: 10, marginTop: 10, alignSelf: 'flex-start',
+      gap: 5,
   },
-  rateButtonText: { color: '#FFF', fontSize: 12, fontWeight: 'bold', marginLeft: 4},
+  rateButtonText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   priceCol: { alignItems: "flex-end", justifyContent: "flex-end" },
-  priceValue: { fontSize: 16, fontWeight: "bold", color: "#28A745" },
-  emptyContainer: { flex: 1, alignItems: "center", marginTop: 100 },
-  emptyText: { marginTop: 15, color: "#94A3B8", fontSize: 14, textAlign: "center", },
+  priceValue: { fontSize: 16, fontWeight: "800", color: "#1B7A30" },
+  emptyContainer: { flex: 1, alignItems: "center", marginTop: 80, paddingHorizontal: 40 },
+  emptyIcon: {
+    width: 72, height: 72, borderRadius: 20, backgroundColor: '#EDEAE4',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 16,
+  },
+  emptyTitle: { fontSize: 17, fontWeight: "700", color: "#4A5568", marginBottom: 6 },
+  emptyText: { color: "#8C95A3", fontSize: 14, textAlign: "center", lineHeight: 20 },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: 'center' },
-  modalContent: { backgroundColor: "#FFF", borderRadius: 20, padding: 20, width: '90%', shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 10, elevation: 5 },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 15, },
-  modalTitle: { fontSize: 18, fontWeight: "bold", color: "#003366", },
-  starsRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 15 },
-  submitRateBtn: { backgroundColor: '#003366', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  submitRateText: { color: '#FFF', fontSize: 15, fontWeight: 'bold' }
+  modalContent: { 
+    backgroundColor: "#FFF", borderRadius: 24, padding: 24, width: '90%', 
+    shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20, elevation: 10,
+  },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, },
+  modalTitle: { fontSize: 20, fontWeight: "800", color: "#1A1D21", },
+  modalCloseBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center',
+  },
+  modalDesc: {
+    textAlign: 'center', marginBottom: 24, color: '#4A5568', lineHeight: 20, fontSize: 14,
+  },
+  starsRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 12 },
+  starLabel: { fontSize: 16, fontWeight: '800', color: '#E5A100' },
+  submitRateBtn: { backgroundColor: '#003366', paddingVertical: 16, borderRadius: 16, alignItems: 'center' },
+  submitRateText: { color: '#FFF', fontSize: 15, fontWeight: '800' }
 });

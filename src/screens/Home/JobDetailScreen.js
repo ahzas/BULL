@@ -68,16 +68,19 @@ export default function JobDetailScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color="#003366" />
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={22} color="#1A1D21" />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Ionicons name="share-social-outline" size={24} color="#003366" />
+        <Text style={styles.headerLabel}>İlan Detayı</Text>
+        <TouchableOpacity style={styles.shareBtn}>
+          <Ionicons name="share-social-outline" size={20} color="#1A1D21" />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* ANA BİLGİ */}
         <View style={styles.mainInfo}>
           <View style={styles.imageBox}>
             {isUrl ? (
@@ -85,7 +88,7 @@ export default function JobDetailScreen({ route, navigation }) {
             ) : (
               <Ionicons
                 name={job.image || "briefcase-outline"}
-                size={50}
+                size={40}
                 color="#003366"
               />
             )}
@@ -95,14 +98,15 @@ export default function JobDetailScreen({ route, navigation }) {
           <Text style={styles.company}>{job.company}</Text>
 
           {job.serviceType === "Bull-Tır" && (
-             <View style={{backgroundColor: '#003366', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 12, marginTop: 8}}>
-                <Text style={{color: '#FFF', fontSize: 12, fontWeight: 'bold'}}>Bull-Tır İlanı</Text>
+             <View style={styles.tirBadge}>
+                <Ionicons name="bus" size={14} color="#E67E22" />
+                <Text style={styles.tirBadgeText}>Bull-Tır İlanı</Text>
              </View>
           )}
 
           <View style={styles.badgeRow}>
             <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={14} color="#F59E0B" />
+              <Ionicons name="star" size={14} color="#E5A100" />
               <Text style={styles.ratingText}>
                 {job.rating || "5.0"} İşveren Puanı
               </Text>
@@ -110,59 +114,56 @@ export default function JobDetailScreen({ route, navigation }) {
           </View>
         </View>
 
-        <View style={styles.detailsCard}>
-          <View style={styles.detailItem}>
-            <Ionicons name="cash-outline" size={20} color="#28A745" />
-            <View style={styles.detailTextCol}>
-              <Text style={styles.detailLabel}>Ücret</Text>
-              <Text style={styles.detailValue}>{job.price} TL</Text>
-            </View>
+        {/* DETAY KARTLARI */}
+        <View style={styles.detailsRow}>
+          <View style={[styles.detailBox, { backgroundColor: '#E8F5EC' }]}>
+            <Ionicons name="cash-outline" size={20} color="#1B7A30" />
+            <Text style={styles.detailLabel}>Ücret</Text>
+            <Text style={[styles.detailValue, { color: '#1B7A30' }]}>{job.price} ₺</Text>
           </View>
 
-          <View style={styles.detailItem}>
+          <View style={[styles.detailBox, { backgroundColor: '#EEF2FF' }]}>
             <Ionicons name="location-outline" size={20} color="#003366" />
-            <View style={styles.detailTextCol}>
-              <Text style={styles.detailLabel}>
-                 {job.serviceType === "Bull-Tır" ? "Konum" : "Konum"}
-              </Text>
-              <Text style={styles.detailValue}>
-                 {job.serviceType === "Bull-Tır" ? job.fromDistrict : job.location}
-              </Text>
-            </View>
+            <Text style={styles.detailLabel}>Konum</Text>
+            <Text style={[styles.detailValue, { color: '#003366' }]} numberOfLines={2}>
+              {job.serviceType === "Bull-Tır" ? job.fromDistrict : job.location}
+            </Text>
           </View>
 
-          <View style={styles.detailItem}>
-            <Ionicons name="time-outline" size={20} color="#64748B" />
-            <View style={styles.detailTextCol}>
-              <Text style={styles.detailLabel}>Sektör</Text>
-              <Text style={styles.detailValue}>{job.category || "Genel"}</Text>
-            </View>
+          <View style={[styles.detailBox, { backgroundColor: '#F3F1ED' }]}>
+            <Ionicons name="grid-outline" size={20} color="#6B7280" />
+            <Text style={styles.detailLabel}>Sektör</Text>
+            <Text style={[styles.detailValue, { color: '#4A5568' }]} numberOfLines={2}>{job.category || "Genel"}</Text>
           </View>
         </View>
 
         {job.serviceType === "Bull-Tır" && (
           <View style={styles.tirCard}>
-            <Text style={styles.tirTitle}>Lojistik Yük Detayları</Text>
+            <View style={styles.tirCardHeader}>
+              <Ionicons name="cube-outline" size={20} color="#E67E22" />
+              <Text style={styles.tirTitle}>Lojistik Yük Detayları</Text>
+            </View>
             
             <View style={styles.tirRow}>
-              <Ionicons name="location-outline" size={18} color="#003366" style={{width: 20}} />
-              <Text style={styles.tirText}><Text style={{fontWeight:'bold'}}>Yükleme (Nereden):</Text> {job.fromLocation}</Text>
+              <View style={[styles.tirDot, { backgroundColor: '#003366' }]} />
+              <Text style={styles.tirText}><Text style={{fontWeight:'700'}}>Yükleme:</Text> {job.fromLocation}</Text>
             </View>
             <View style={styles.tirRow}>
-              <Ionicons name="navigate-outline" size={18} color="#28A745" style={{width: 20}} />
-              <Text style={styles.tirText}><Text style={{fontWeight:'bold'}}>Teslimat (Nereye):</Text> {job.toLocation}</Text>
+              <View style={[styles.tirDot, { backgroundColor: '#28A745' }]} />
+              <Text style={styles.tirText}><Text style={{fontWeight:'700'}}>Teslimat:</Text> {job.toLocation}</Text>
+            </View>
+            <View style={styles.tirDivider} />
+            <View style={styles.tirRow}>
+              <Ionicons name="calendar-outline" size={16} color="#6B7280" style={{width: 18}} />
+              <Text style={styles.tirText}><Text style={{fontWeight:'700'}}>Tarih:</Text> {job.loadingDate}</Text>
             </View>
             <View style={styles.tirRow}>
-              <Ionicons name="calendar-outline" size={18} color="#F59E0B" style={{width: 20}} />
-              <Text style={styles.tirText}><Text style={{fontWeight:'bold'}}>Yükleme Tarihi:</Text> {job.loadingDate}</Text>
+              <Ionicons name="scale-outline" size={16} color="#6B7280" style={{width: 18}} />
+              <Text style={styles.tirText}><Text style={{fontWeight:'700'}}>Tonaj / Ürün:</Text> {job.tonnage} Ton | {job.productType}</Text>
             </View>
             <View style={styles.tirRow}>
-              <Ionicons name="scale-outline" size={18} color="#64748B" style={{width: 20}} />
-              <Text style={styles.tirText}><Text style={{fontWeight:'bold'}}>Tonaj / Ürün:</Text> {job.tonnage} Ton | {job.productType}</Text>
-            </View>
-            <View style={styles.tirRow}>
-              <Ionicons name="car-outline" size={18} color="#64748B" style={{width: 20}} />
-              <Text style={styles.tirText}><Text style={{fontWeight:'bold'}}>İstenen Araç:</Text> {job.vehicleType}</Text>
+              <Ionicons name="car-outline" size={16} color="#6B7280" style={{width: 18}} />
+              <Text style={styles.tirText}><Text style={{fontWeight:'700'}}>Araç:</Text> {job.vehicleType}</Text>
             </View>
           </View>
         )}
@@ -184,11 +185,15 @@ export default function JobDetailScreen({ route, navigation }) {
             style={[styles.applyButton, loading && { opacity: 0.7 }]}
             onPress={handleApply}
             disabled={loading}
+            activeOpacity={0.85}
           >
             {loading ? (
               <ActivityIndicator color="#FFF" />
             ) : (
-              <Text style={styles.applyButtonText}>HEMEN BAŞVUR</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={styles.applyButtonText}>HEMEN BAŞVUR</Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFF" />
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -196,8 +201,8 @@ export default function JobDetailScreen({ route, navigation }) {
 
       {!isEmployerMode && isOwner && (
         <View style={styles.footer}>
-          <View style={[styles.applyButton, {backgroundColor: '#CBD5E1'}]}>
-             <Text style={[styles.applyButtonText, {color: '#64748B'}]}>BU İLAN SİZE AİT</Text>
+          <View style={[styles.applyButton, {backgroundColor: '#EDEAE4'}]}>
+             <Text style={[styles.applyButtonText, {color: '#6B7280'}]}>BU İLAN SİZE AİT</Text>
           </View>
         </View>
       )}
@@ -207,76 +212,137 @@ export default function JobDetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1, backgroundColor: "#F6F4F0" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    backgroundColor: "#FFF",
+    borderBottomWidth: 0,
   },
-  mainInfo: { alignItems: "center", padding: 20 },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#F3F1ED",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1A1D21",
+  },
+  shareBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#F3F1ED",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  mainInfo: { alignItems: "center", padding: 24, backgroundColor: "#FFF", marginBottom: 8 },
   imageBox: {
-    width: 120, height: 120, borderRadius: 30, backgroundColor: "#F8FAFC",
-    justifyContent: "center", alignItems: "center", marginBottom: 15,
-    borderWidth: 1, borderColor: "#E2E8F0",
+    width: 100, height: 100, borderRadius: 24, backgroundColor: "#F3F1ED",
+    justifyContent: "center", alignItems: "center", marginBottom: 16,
   },
-  jobImage: { width: 80, height: 80, borderRadius: 20 },
-  title: { fontSize: 24, fontWeight: "bold", color: "#003366", textAlign: "center" },
-  company: { fontSize: 16, color: "#64748B", marginTop: 5 },
-  badgeRow: { flexDirection: "row", marginTop: 15 },
+  jobImage: { width: 70, height: 70, borderRadius: 18 },
+  title: { fontSize: 22, fontWeight: "800", color: "#1A1D21", textAlign: "center" },
+  company: { fontSize: 15, color: "#6B7280", marginTop: 4, fontWeight: "500" },
+  tirBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF4E5",
+    paddingVertical: 5,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    marginTop: 10,
+    gap: 6,
+  },
+  tirBadgeText: { color: "#E67E22", fontSize: 12, fontWeight: "700" },
+  badgeRow: { flexDirection: "row", marginTop: 14 },
   ratingBadge: {
-    flexDirection: "row", alignItems: "center", backgroundColor: "#FFFBEB",
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginRight: 10,
+    flexDirection: "row", alignItems: "center", backgroundColor: "#FFF8E7",
+    paddingHorizontal: 14, paddingVertical: 7, borderRadius: 12, gap: 6,
   },
-  ratingText: { fontSize: 12, fontWeight: "bold", color: "#B45309", marginLeft: 5 },
-  detailsCard: {
-    backgroundColor: "#F8FAFC", margin: 20, borderRadius: 20, padding: 20,
-    flexDirection: "row", justifyContent: "space-between",
-    borderWidth: 1, borderColor: "#E2E8F0",
+  ratingText: { fontSize: 13, fontWeight: "700", color: "#B8860B" },
+  // DETAY KARTLARI
+  detailsRow: {
+    flexDirection: "row",
+    marginHorizontal: 20,
+    gap: 10,
+    marginBottom: 12,
   },
-  detailItem: { alignItems: "center", flex: 1 },
-  detailTextCol: { alignItems: "center", marginTop: 5 },
-  detailLabel: { fontSize: 10, color: "#64748B", textTransform: "uppercase" },
-  detailValue: { fontSize: 13, fontWeight: "bold", color: "#003366", marginTop: 2, textAlign: 'center' },
+  detailBox: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 14,
+    alignItems: "center",
+  },
+  detailLabel: { fontSize: 10, color: "#6B7280", textTransform: "uppercase", marginTop: 6, fontWeight: "700", letterSpacing: 0.5 },
+  detailValue: { fontSize: 13, fontWeight: "800", marginTop: 3, textAlign: 'center' },
   
   tirCard: {
-    backgroundColor: "#F0F7FF",
+    backgroundColor: "#FFF",
     marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#DBEAFE"
+    marginBottom: 16,
+    borderRadius: 18,
+    padding: 18,
+  },
+  tirCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
   },
   tirTitle: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#003366",
-    marginBottom: 12,
+    fontWeight: "800",
+    color: "#1A1D21",
   },
   tirRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 10,
+    paddingLeft: 4,
+  },
+  tirDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 10,
+    marginTop: 5,
+  },
+  tirDivider: {
+    height: 1,
+    backgroundColor: '#F3F1ED',
+    marginVertical: 8,
   },
   tirText: {
     fontSize: 14,
-    color: "#334155",
+    color: "#4A5568",
     flex: 1,
     marginLeft: 6,
     lineHeight: 20
   },
 
-  descriptionSection: { paddingHorizontal: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#003366", marginBottom: 10 },
-  descriptionText: { fontSize: 15, color: "#475569", lineHeight: 22 },
+  descriptionSection: { paddingHorizontal: 20, marginBottom: 16 },
+  sectionTitle: { fontSize: 17, fontWeight: "800", color: "#1A1D21", marginBottom: 10 },
+  descriptionText: { fontSize: 15, color: "#4A5568", lineHeight: 23 },
   footer: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: "#FFF", padding: 20, borderTopWidth: 1, borderTopColor: "#E2E8F0",
+    backgroundColor: "#FFF", padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 8,
   },
   applyButton: {
-    backgroundColor: "#28A745", height: 56, borderRadius: 15,
+    backgroundColor: "#28A745", height: 56, borderRadius: 16,
     justifyContent: "center", alignItems: "center",
   },
-  applyButtonText: { color: "#FFF", fontSize: 18, fontWeight: "bold" },
+  applyButtonText: { color: "#FFF", fontSize: 17, fontWeight: "800", letterSpacing: 0.3 },
 });

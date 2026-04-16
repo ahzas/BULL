@@ -21,14 +21,16 @@ const SpecialMenu = ({ icon, title, subtitle, color, onPress }) => (
     onPress={onPress}
     activeOpacity={0.7}
   >
-    <View style={[styles.specialIconBox, { backgroundColor: color + "15" }]}>
-      <Ionicons name={icon} size={24} color={color} />
+    <View style={[styles.specialIconBox, { backgroundColor: color + "12" }]}>
+      <Ionicons name={icon} size={22} color={color} />
     </View>
     <View style={styles.specialTextContent}>
       <Text style={styles.specialTitle}>{title}</Text>
       <Text style={styles.specialSubtitle}>{subtitle}</Text>
     </View>
-    <Ionicons name="chevron-forward" size={18} color="#CBD5E1" />
+    <View style={styles.menuArrow}>
+      <Ionicons name="chevron-forward" size={16} color="#B8BEC7" />
+    </View>
   </TouchableOpacity>
 );
 
@@ -81,41 +83,45 @@ export default function ProfileScreen({ navigation }) {
     ]);
   };
 
+  const initials = fullName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* 1. ÜST PROFİL VE AVATAR */}
+        {/* 1. ÜST PROFİL — KOYU ARKAPLAN */}
         <View style={styles.headerCard}>
-          <View style={styles.userInfo}>
-            <View style={styles.avatarContainer}>
-              <Image
-                source={{
-                  uri: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-                }}
-                style={styles.avatar}
-              />
-              <TouchableOpacity style={styles.editBadge}>
-                <Ionicons name="camera" size={14} color="#FFF" />
+          <View style={styles.headerBg}>
+            <View style={styles.userInfo}>
+              <View style={styles.avatarContainer}>
+                <View style={styles.avatarFallback}>
+                  <Text style={styles.avatarInitials}>{initials}</Text>
+                </View>
+                <TouchableOpacity style={styles.editBadge}>
+                  <Ionicons name="camera" size={12} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.userNameContainer}>
+                <Text style={styles.userName}>{fullName}</Text>
+                <Text style={styles.userSub}>
+                  {age} Yaşında • ⭐ {user?.user?.rating?.toFixed(1) || user?.rating?.toFixed(1) || "5.0"} 
+                  <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}> ({user?.user?.ratingCount || user?.ratingCount || 0})</Text>
+                </Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.settingsBtn}
+                onPress={() => navigation.navigate("Settings")}
+              >
+                <Ionicons name="settings-outline" size={20} color="rgba(255,255,255,0.7)" />
               </TouchableOpacity>
             </View>
-            <View style={styles.userNameContainer}>
-              <Text style={styles.userName}>{fullName}</Text>
-              <Text style={styles.userSub}>
-                {age} Yaşında • ⭐ {user?.user?.rating?.toFixed(1) || user?.rating?.toFixed(1) || "5.0"} 
-                <Text style={{ fontSize: 11, color: "#94A3B8" }}> ({user?.user?.ratingCount || user?.ratingCount || 0} Değerlendirme)</Text>
+
+            {/* 2. ROL GÖSTERGESİ */}
+            <View style={styles.roleBadge}>
+              <Ionicons name={isEmployer ? "briefcase" : "hammer"} size={16} color={isEmployer ? "#003366" : "#28A745"} />
+              <Text style={styles.roleBadgeText}>
+                {isEmployer ? "İşveren Profili" : "İşçi Profili"}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
-              <Ionicons name="settings-outline" size={22} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-
-          {/* 2. STATİK ROL GÖSTERGESİ */}
-          <View style={styles.roleStaticBadge}>
-            <Ionicons name={isEmployer ? "briefcase" : "hammer"} size={20} color="#FFF" />
-            <Text style={styles.roleStaticBadgeText}>
-              {isEmployer ? "İşveren Profili" : "İşçi Profili"}
-            </Text>
           </View>
         </View>
 
@@ -172,7 +178,9 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Genel</Text>
           <TouchableOpacity style={styles.standardOption}>
-            <Ionicons name="card-outline" size={20} color="#64748B" />
+            <View style={[styles.optionIconBox, { backgroundColor: '#EEF2FF' }]}>
+              <Ionicons name="card-outline" size={18} color="#6366F1" />
+            </View>
             <Text style={styles.standardOptionText}>
               Ödeme Yöntemlerim & IBAN
             </Text>
@@ -182,7 +190,9 @@ export default function ProfileScreen({ navigation }) {
             style={styles.standardOption}
             onPress={() => navigation.navigate("Help")}
           >
-            <Ionicons name="help-circle-outline" size={20} color="#64748B" />
+            <View style={[styles.optionIconBox, { backgroundColor: '#FFF4E5' }]}>
+              <Ionicons name="help-circle-outline" size={18} color="#E67E22" />
+            </View>
             <Text style={styles.standardOptionText}>
               Yardım ve Destek (ITSM)
             </Text>
@@ -194,7 +204,7 @@ export default function ProfileScreen({ navigation }) {
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons
             name="log-out-outline"
-            size={20}
+            size={18}
             color="#EF4444"
             style={{ marginRight: 8 }}
           />
@@ -207,152 +217,181 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-// ... styles kısmı aynı kalacak
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F6F4F0",
   },
   headerCard: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#003366",
+  },
+  headerBg: {
     padding: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    paddingBottom: 24,
   },
   userInfo: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 25,
+    marginBottom: 20,
   },
   avatarContainer: {
     position: "relative",
   },
-  avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "#F1F5F9",
-    borderWidth: 2,
-    borderColor: "#E2E8F0",
+  avatarFallback: {
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  avatarInitials: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#FFF",
   },
   editBadge: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: "#003366",
+    bottom: -2,
+    right: -2,
+    backgroundColor: "#28A745",
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#FFF",
+    borderColor: "#003366",
   },
   userNameContainer: {
     marginLeft: 15,
     flex: 1,
   },
   userName: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#0F172A",
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#FFFFFF",
   },
   userSub: {
     fontSize: 13,
-    color: "#64748B",
-    marginTop: 2,
+    color: "rgba(255,255,255,0.7)",
+    marginTop: 3,
   },
-  roleStaticBadge: {
+  settingsBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  roleBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#003366",
-    padding: 12,
+    backgroundColor: "rgba(255,255,255,0.95)",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 12,
     justifyContent: "center",
-    marginTop: 10,
-    gap: 10
+    gap: 8,
   },
-  roleStaticBadgeText: {
-    color: "#FFF",
-    fontWeight: "bold",
-    fontSize: 16
+  roleBadgeText: {
+    color: "#1A1D21",
+    fontWeight: "700",
+    fontSize: 14,
   },
   section: {
     paddingHorizontal: 20,
-    paddingTop: 25,
+    paddingTop: 24,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "800",
-    color: "#94A3B8",
-    marginBottom: 15,
+    color: "#8C95A3",
+    marginBottom: 14,
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 1.2,
+    marginLeft: 2,
   },
   specialCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 10,
+    shadowColor: "#1B2E4B",
+    shadowOpacity: 0.03,
     shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   specialIconBox: {
-    width: 48,
-    height: 48,
+    width: 46,
+    height: 46,
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
   },
   specialTextContent: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 14,
   },
   specialTitle: {
     fontSize: 15,
-    fontWeight: "bold",
-    color: "#1E293B",
+    fontWeight: "700",
+    color: "#1A1D21",
   },
   specialSubtitle: {
     fontSize: 12,
-    color: "#64748B",
-    marginTop: 3,
+    color: "#6B7280",
+    marginTop: 2,
+  },
+  menuArrow: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: "#F3F1ED",
+    justifyContent: "center",
+    alignItems: "center",
   },
   standardOption: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    padding: 15,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 14,
     marginBottom: 8,
+  },
+  optionIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   standardOptionText: {
     flex: 1,
     marginLeft: 12,
     fontSize: 14,
-    color: "#1E293B",
-    fontWeight: "500",
+    color: "#1A1D21",
+    fontWeight: "600",
   },
   logoutBtn: {
     marginHorizontal: 20,
-    marginTop: 20,
+    marginTop: 24,
     padding: 16,
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
+    backgroundColor: "#FEF2F2",
+    borderRadius: 14,
   },
   logoutBtnText: {
     color: "#EF4444",
-    fontWeight: "bold",
-    fontSize: 16,
+    fontWeight: "700",
+    fontSize: 15,
   },
 });

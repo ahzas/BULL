@@ -22,6 +22,7 @@ const SLIDES = [
     description: 'Güçlü iş gücü, hızlı kazanç dünyasına ilk adımınızı attınız.',
     // Boğa / Güç simgesi
     image: { uri: 'https://cdn-icons-png.flaticon.com/512/2534/2534674.png' }, 
+    accentColor: '#003366',
   },
   {
     id: '2',
@@ -29,26 +30,30 @@ const SLIDES = [
     description: 'Önce emeğinin karşılığını al, sonra BULL ile kazancını katla. Her işlem sana puan olarak geri döner.',
     // Para / Kazanç simgesi
     image: { uri: 'https://cdn-icons-png.flaticon.com/512/2488/2488749.png' },
+    accentColor: '#28A745',
   },
   {
     id: '3',
-    title: 'Streak Yap, Kazancını Katla!',
-    description: '1 ay içerisinde işlerinizi aksatmadan seri (streak) yaparak, aldığınız ücretin %10\'una varan ekstra bonus kazanın.',
+    title: 'Streak Yap,\nKazancını Katla!',
+    description: '1 ay içerisinde işlerinizi aksatmadan seri yaparak, aldığınız ücretin %10\'una varan ekstra bonus kazanın.',
     // Ateş / Streak simgesi
     image: { uri: 'https://cdn-icons-png.flaticon.com/512/426/426833.png' },
+    accentColor: '#E67E22',
   },
 ];
 
 const Slide = ({ item }) => {
   return (
     <View style={styles.slide}>
-      <View style={styles.imageContainer}>
+      <View style={[styles.imageContainer, { backgroundColor: item.accentColor + '08' }]}>
         {/* Görsellerin boyutu ve modu ayarlandı */}
-        <Image 
-          source={item.image} 
-          style={styles.image} 
-          resizeMode="contain" 
-        />
+        <View style={[styles.imageBg, { backgroundColor: item.accentColor + '12' }]}>
+          <Image 
+            source={item.image} 
+            style={styles.image} 
+            resizeMode="contain" 
+          />
+        </View>
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.title}</Text>
@@ -83,6 +88,8 @@ export default function OnboardingScreen() {
     navigation.replace('HomeApp'); 
   };
 
+  const currentAccent = SLIDES[currentSlideIndex]?.accentColor || '#003366';
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
@@ -99,12 +106,12 @@ export default function OnboardingScreen() {
       {/* ALT KISIM (Noktalar ve Buton) */}
       <View style={styles.footer}>
         <View style={styles.indicatorContainer}>
-          {SLIDES.map((_, index) => (
+          {SLIDES.map((slide, index) => (
             <View
               key={index}
               style={[
                 styles.indicator,
-                currentSlideIndex === index && styles.indicatorActive,
+                currentSlideIndex === index && [styles.indicatorActive, { backgroundColor: currentAccent }],
               ]}
             />
           ))}
@@ -112,19 +119,26 @@ export default function OnboardingScreen() {
 
         <View style={{ marginBottom: 20 }}>
           {currentSlideIndex === SLIDES.length - 1 ? (
-            <TouchableOpacity style={styles.btn} onPress={handleFinish}>
+            <TouchableOpacity 
+              style={[styles.btn, { backgroundColor: currentAccent }]} 
+              onPress={handleFinish}
+              activeOpacity={0.85}
+            >
               <Text style={styles.btnText}>BAŞLAYALIM</Text>
             </TouchableOpacity>
           ) : (
             <View style={{ flexDirection: 'row' }}>
               <TouchableOpacity 
-                style={[styles.btn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#003366' }]} 
+                style={styles.skipBtn} 
                 onPress={handleFinish}
               >
-                <Text style={[styles.btnText, { color: '#003366' }]}>ATLA</Text>
+                <Text style={[styles.skipBtnText, { color: currentAccent }]}>ATLA</Text>
               </TouchableOpacity>
-              <View style={{ width: 15 }} />
-              <TouchableOpacity style={styles.btn} onPress={goNextSlide}>
+              <View style={{ width: 12 }} />
+              <TouchableOpacity 
+                style={[styles.btn, { backgroundColor: currentAccent }]} 
+                onPress={goNextSlide}
+              >
                 <Text style={styles.btnText}>İLERİ</Text>
               </TouchableOpacity>
             </View>
@@ -138,7 +152,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F6F4F0',
   },
   slide: {
     width,
@@ -148,10 +162,20 @@ const styles = StyleSheet.create({
   imageContainer: {
     flex: 0.6,
     justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    borderRadius: 24,
+  },
+  imageBg: {
+    width: width * 0.5,
+    height: width * 0.5,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
-    width: width * 0.6,  // Görsel boyutu
-    height: width * 0.6,
+    width: width * 0.35,
+    height: width * 0.35,
     resizeMode: 'contain',
   },
   textContainer: {
@@ -160,17 +184,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    color: '#003366',
-    fontSize: 28,
-    fontWeight: 'bold',
+    color: '#1A1D21',
+    fontSize: 26,
+    fontWeight: '800',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+    lineHeight: 34,
   },
   description: {
-    color: '#64748B',
-    fontSize: 16,
+    color: '#6B7280',
+    fontSize: 15,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 23,
   },
   footer: {
     height: height * 0.25,
@@ -183,27 +208,38 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   indicator: {
-    height: 8,
-    width: 10,
-    backgroundColor: '#CBD5E1',
-    marginHorizontal: 3,
-    borderRadius: 4,
+    height: 6,
+    width: 6,
+    backgroundColor: '#DDDAD4',
+    marginHorizontal: 4,
+    borderRadius: 3,
   },
   indicatorActive: {
-    backgroundColor: '#28A745',
-    width: 30,
+    width: 28,
   },
   btn: {
     flex: 1,
-    height: 55,
-    borderRadius: 12,
-    backgroundColor: '#003366',
+    height: 56,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   btnText: {
-    fontWeight: 'bold',
+    fontWeight: '800',
     fontSize: 15,
     color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  skipBtn: {
+    flex: 1,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+  },
+  skipBtnText: {
+    fontWeight: '700',
+    fontSize: 15,
   },
 });

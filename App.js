@@ -42,15 +42,24 @@ function AppTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#28A745", // BULL Yeşil
-        tabBarInactiveTintColor: "#64748B",
+        tabBarActiveTintColor: "#003366",
+        tabBarInactiveTintColor: "#9CA3AF",
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
-          borderTopWidth: 1,
-          borderTopColor: "#E2E8F0",
-          height: 65,
+          borderTopWidth: 0,
+          height: 68,
           paddingBottom: 10,
-          paddingTop: 10,
+          paddingTop: 8,
+          elevation: 16,
+          shadowColor: "#1B2E4B",
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: "700",
+          letterSpacing: 0.3,
         },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
