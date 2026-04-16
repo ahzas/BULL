@@ -6,6 +6,7 @@ import { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -22,11 +23,11 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const navigation = useNavigation();
   const { login } = useContext(AuthContext);
 
-  // Uygulama açıldığında hafızadaki e-postayı kontrol et
   useEffect(() => {
     const checkRememberedUser = async () => {
       try {
@@ -53,7 +54,6 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (result?.success) {
-      // Beni Hatırla Mantığı
       try {
         if (rememberMe) {
           await AsyncStorage.setItem('@user_email', email);
@@ -63,7 +63,6 @@ export default function LoginScreen() {
       } catch (err) {
         console.log("Hafıza yazma hatası:", err);
       }
-      
       navigation.replace('HomeApp'); 
     } else {
       Alert.alert("Giriş Başarısız", result?.message || "Hata oluştu.");
@@ -71,84 +70,86 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.content}
+        style={{ flex: 1 }}
       >
-        <View style={styles.header}>
-          <Text style={styles.appName}>BULL</Text>
-          <Text style={styles.tagline}>Güçlü İş, Hızlı Çözüm</Text>
+        {/* LOGO ALANI */}
+        <View style={styles.logoArea}>
+          <Image source={require('../../../assets/images/bull-logo.png')} style={styles.logoImg} />
+          <Text style={styles.logoName}>BULL</Text>
         </View>
 
+        {/* FORM */}
         <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>E-Posta Adresi</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="ornek@bull.com"
-              placeholderTextColor="#94A3B8"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>E-posta</Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="person-outline" size={18} color="#999" />
+              <TextInput
+                style={styles.input}
+                placeholder="E-posta adresinizi girin"
+                placeholderTextColor="#bbb"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Şifre</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="******"
-              placeholderTextColor="#94A3B8"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>Şifre</Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="lock-closed-outline" size={18} color="#999" />
+              <TextInput
+                style={styles.input}
+                placeholder="Şifrenizi girin"
+                placeholderTextColor="#bbb"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#999" />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* BENİ HATIRLA & ŞİFREMİ UNUTTUM */}
           <View style={styles.optionsRow}>
-            <TouchableOpacity 
-              style={styles.rememberBtn}
-              onPress={() => setRememberMe(!rememberMe)}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity style={styles.checkRow} onPress={() => setRememberMe(!rememberMe)}>
               <Ionicons 
                 name={rememberMe ? "checkbox" : "square-outline"} 
-                size={22} 
-                color={rememberMe ? "#28A745" : "#64748B"} 
+                size={20} 
+                color={rememberMe ? "#003366" : "#ccc"} 
               />
-              <Text style={styles.rememberText}>Beni Hatırla</Text>
+              <Text style={styles.checkLabel}>Beni Hatırla</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.forgotBtn}
-              onPress={() => Alert.alert("Bilgi", "Şifre sıfırlama yakında!")}
-            >
-              <Text style={styles.forgotText}>Şifremi Unuttum?</Text>
+            <TouchableOpacity onPress={() => Alert.alert("Bilgi", "Şifre sıfırlama yakında!")}>
+              <Text style={styles.forgotText}>Şifremi Unuttum</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity 
-            style={[styles.button, loading && styles.buttonDisabled]} 
+            style={[styles.loginBtn, loading && { opacity: 0.6 }]} 
             onPress={handleLogin}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color="#FFF" />
             ) : (
-              <Text style={styles.buttonText}>Giriş Yap</Text>
+              <Text style={styles.loginBtnText}>Giriş Yap</Text>
             )}
           </TouchableOpacity>
+        </View>
 
-          <TouchableOpacity 
-            style={styles.linkButton}
-            onPress={() => navigation.navigate('Register')}
-          >
-            <Text style={styles.linkText}>
-              Hesabın yok mu? <Text style={styles.boldText}>Kayıt Ol</Text>
-            </Text>
+        {/* ALT LİNK */}
+        <View style={styles.bottom}>
+          <Text style={styles.bottomText}>Hesabınız yok mu?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.bottomLink}> Üye Ol</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -157,113 +158,29 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+  safe: { flex: 1, backgroundColor: '#FFF' },
+  logoArea: { alignItems: 'center', marginTop: 60, marginBottom: 40 },
+  logoImg: { width: 80, height: 80, borderRadius: 16 },
+  logoName: { fontSize: 24, fontWeight: '900', color: '#003366', marginTop: 10, letterSpacing: 3 },
+  form: { paddingHorizontal: 24 },
+  field: { marginBottom: 20 },
+  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 8 },
+  inputRow: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1, borderColor: '#ddd', borderRadius: 8,
+    paddingHorizontal: 12, height: 48, backgroundColor: '#FAFAFA',
   },
-  content: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
+  input: { flex: 1, marginLeft: 10, fontSize: 15, color: '#333' },
+  optionsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  checkLabel: { fontSize: 14, color: '#555' },
+  forgotText: { fontSize: 14, color: '#003366', fontWeight: '600' },
+  loginBtn: {
+    backgroundColor: '#003366', height: 50, borderRadius: 8,
+    justifyContent: 'center', alignItems: 'center',
   },
-  header: {
-    marginBottom: 40,
-    alignItems: 'center',
-  },
-  appName: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: '#003366',
-    letterSpacing: 2,
-  },
-  tagline: {
-    fontSize: 16,
-    color: '#475569',
-    marginTop: 5,
-    fontWeight: '500',
-  },
-  form: {
-    width: '100%',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    color: '#1E293B',
-    marginBottom: 8,
-    fontSize: 14,
-    fontWeight: '700',
-    marginLeft: 4,
-  },
-  input: {
-    backgroundColor: '#F8FAFC',
-    height: 56,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    color: '#0F172A',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    fontSize: 16,
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 4,
-  },
-  rememberBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rememberText: {
-    marginLeft: 8,
-    color: '#64748B',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  forgotBtn: {
-    paddingVertical: 5,
-  },
-  forgotText: {
-    color: '#64748B',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  button: {
-    backgroundColor: '#28A745',
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#28A745',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  linkButton: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#64748B',
-    fontSize: 15,
-  },
-  boldText: {
-    color: '#003366',
-    fontWeight: 'bold',
-  },
+  loginBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  bottom: { flexDirection: 'row', justifyContent: 'center', marginTop: 'auto', marginBottom: 30 },
+  bottomText: { fontSize: 15, color: '#666' },
+  bottomLink: { fontSize: 15, color: '#003366', fontWeight: '700' },
 });

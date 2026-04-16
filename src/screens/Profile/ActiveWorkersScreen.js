@@ -187,7 +187,7 @@ export default function ActiveWorkersScreen({ navigation }) {
           }
           ListEmptyComponent={
             <View style={styles.emptyBox}>
-              <Ionicons name="people-outline" size={70} color="#E2E8F0" />
+              <Ionicons name="people-outline" size={70} color="#DDDAD4" />
               <Text style={styles.emptyTitle}>Henüz Aktif Çalışan Yok</Text>
               <Text style={styles.emptyText}>
                 Bir iş ilanınıza başvuran işçiyi işe aldığınızda burada görünecektir.
@@ -202,7 +202,7 @@ export default function ActiveWorkersScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F6F4F0" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -214,18 +214,18 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F3F1ED",
     justifyContent: "center",
     alignItems: "center",
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: "bold",
-    color: "#003366",
+    fontWeight: "800",
+    color: "#1A1D21",
   },
   headerSub: {
     fontSize: 13,
-    color: "#64748B",
+    color: "#6B7280",
     marginTop: 2,
   },
   listContent: {
@@ -234,20 +234,19 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#FFF",
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
+    marginBottom: 14,
+    borderWidth: 0,
+    elevation: 1,
+    shadowColor: "#1B2E4B",
+    shadowOpacity: 0.03,
     shadowRadius: 8,
   },
   jobBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F0F5FF",
+    backgroundColor: "#EEF2FF",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -276,9 +275,9 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F3F1ED",
     borderWidth: 2,
-    borderColor: "#E2E8F0",
+    borderColor: "#E8E4DE",
   },
   onlineDot: {
     position: "absolute",
@@ -298,7 +297,7 @@ const styles = StyleSheet.create({
   workerName: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1E293B",
+    color: "#1A1D21",
     marginBottom: 2,
   },
   infoRow: {
@@ -320,7 +319,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: "#F3F1ED",
     gap: 16,
   },
   jobFooterItem: {
@@ -344,8 +343,8 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#64748B",
+    fontWeight: "700",
+    color: "#4A5568",
     marginTop: 16,
   },
   emptyText: {

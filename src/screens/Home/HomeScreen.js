@@ -19,47 +19,44 @@ import { AuthContext } from "../../context/AuthContext";
 import { JobContext } from "../../context/JobContext";
 import API_BASE from "../../config/api";
 
-// --- ROL YÖNETİMİ ---
-// Bu değer ilerde veritabanından/auth context'ten gelecek.
-
 const JobCard = ({ item, navigation }) => {
   const imageVal = item.image;
   const isUrl = typeof imageVal === "string" && imageVal.startsWith("http");
-  const iconName =
-    imageVal && typeof imageVal === "string" && imageVal.length > 0
-      ? imageVal
-      : "briefcase-outline";
+  const iconName = imageVal && typeof imageVal === "string" && imageVal.length > 0 ? imageVal : "briefcase-outline";
+  const isTir = item.serviceType === "Bull-Tır";
 
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate("JobDetail", { job: item })}
+      activeOpacity={0.6}
     >
-      <View style={styles.cardHeader}>
-        <View style={styles.cardInfoContainer}>
-          <View style={styles.imageContainer}>
-            {isUrl ? (
-              <Image source={{ uri: imageVal }} style={styles.cardImage} />
-            ) : (
-              <Ionicons name={iconName} size={24} color="#003366" />
-            )}
-          </View>
-          <View style={styles.titleContainer}>
-            <Text style={styles.jobTitle}>{item.title}</Text>
-            <Text style={styles.subText}>{item.company}</Text>
-          </View>
-        </View>
-        <View style={styles.ratingBadge}>
-          <Ionicons name="star" size={10} color="#FFF" />
-          <Text style={styles.ratingText}>{item.rating || "5.0"}</Text>
+      {/* Sol ikon */}
+      <View style={[styles.cardIcon, isTir && { backgroundColor: '#FFF3E0' }]}>
+        {isUrl ? (
+          <Image source={{ uri: imageVal }} style={{ width: 36, height: 36, borderRadius: 8 }} />
+        ) : (
+          <Ionicons name={iconName} size={22} color={isTir ? "#E67E22" : "#003366"} />
+        )}
+      </View>
+
+      {/* Orta bilgi */}
+      <View style={styles.cardInfo}>
+        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={styles.cardCompany} numberOfLines={1}>{item.company}</Text>
+        <View style={styles.cardMeta}>
+          <Ionicons name="location-outline" size={12} color="#999" />
+          <Text style={styles.cardLocation} numberOfLines={1}>{item.location}</Text>
         </View>
       </View>
-      <View style={styles.cardFooter}>
-        <View style={styles.locationContainer}>
-          <Ionicons name="location-outline" size={14} color="#94A3B8" />
-          <Text style={styles.location}>{item.location}</Text>
+
+      {/* Sağ fiyat */}
+      <View style={styles.cardRight}>
+        <Text style={styles.cardPrice}>{item.price} ₺</Text>
+        <View style={styles.cardRating}>
+          <Ionicons name="star" size={11} color="#F5A623" />
+          <Text style={styles.cardRatingText}>{item.rating || "5.0"}</Text>
         </View>
-        <Text style={styles.price}>{item.price} TL</Text>
       </View>
     </TouchableOpacity>
   );
@@ -74,29 +71,23 @@ export default function HomeScreen() {
   const { user } = useContext(AuthContext);
   const USER_ROLE = user?.role === "employer" || user?.user?.role === "employer" ? "employer" : "worker";
 
-  // Sıralama ve Filtreleme State'leri
-  const [sortBy, setSortBy] = useState("newest"); // newest, oldest, priceAsc, priceDesc, ratingDesc
+  const [sortBy, setSortBy] = useState("newest");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterCity, setFilterCity] = useState("");
   const [showSortModal, setShowSortModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
 
   const CATEGORIES = [
-    "Bilişim ve Teknoloji (IT)",
-    "Satış ve Pazarlama",
-    "Üretim ve Endüstri",
-    "Lojistik ve Taşımacılık",
-    "Hizmet ve Turizm",
-    "Yönetim ve İdari İşler",
-    "Diğer",
+    "Bilişim ve Teknoloji (IT)", "Satış ve Pazarlama", "Üretim ve Endüstri",
+    "Lojistik ve Taşımacılık", "Hizmet ve Turizm", "Yönetim ve İdari İşler", "Diğer",
   ];
 
   const SORT_OPTIONS = [
-    { key: "newest", label: "En Yeni", icon: "time-outline" },
-    { key: "oldest", label: "En Eski", icon: "hourglass-outline" },
-    { key: "priceDesc", label: "Fiyat (Yüksek → Düşük)", icon: "arrow-down-outline" },
-    { key: "priceAsc", label: "Fiyat (Düşük → Yüksek)", icon: "arrow-up-outline" },
-    { key: "ratingDesc", label: "Puan (En Yüksek)", icon: "star-outline" },
+    { key: "newest", label: "En Yeni" },
+    { key: "oldest", label: "En Eski" },
+    { key: "priceDesc", label: "Fiyat (Yüksek → Düşük)" },
+    { key: "priceAsc", label: "Fiyat (Düşük → Yüksek)" },
+    { key: "ratingDesc", label: "Puan (En Yüksek)" },
   ];
 
   const API_URL = `${API_BASE}/jobs`;
@@ -113,190 +104,138 @@ export default function HomeScreen() {
     }
   }, [setJobs]);
 
-  useEffect(() => {
-    fetchJobs();
-  }, [fetchJobs]);
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
 
-  // --- ROL TABANLI ASİMETRİK FİLTRELEME + SEKME FİLTRESİ + KATEGORİ + ŞEHİR ---
   const filteredData = jobs.filter((job) => {
-    const matchesSearch =
-      job.title?.toLowerCase().includes(search.toLowerCase()) ||
-      job.company?.toLowerCase().includes(search.toLowerCase());
-
+    const matchesSearch = job.title?.toLowerCase().includes(search.toLowerCase()) || job.company?.toLowerCase().includes(search.toLowerCase());
     const matchesTab = (job.serviceType || "Bull-Part") === activeTab;
     const matchesCategory = !filterCategory || job.category === filterCategory;
     const matchesCity = !filterCity || job.location?.toLowerCase().includes(filterCity.toLowerCase());
-
-    if (USER_ROLE === "worker") {
-      return matchesSearch && matchesTab && matchesCategory && matchesCity && job.type === "job_offer";
-    } else {
-      return matchesSearch && matchesTab && matchesCategory && matchesCity && job.type === "skill_profile";
-    }
+    if (USER_ROLE === "worker") return matchesSearch && matchesTab && matchesCategory && matchesCity && job.type === "job_offer";
+    else return matchesSearch && matchesTab && matchesCategory && matchesCity && job.type === "skill_profile";
   });
 
-  // Sıralama uygula
   const dynamicData = [...filteredData].sort((a, b) => {
     switch (sortBy) {
-      case "oldest":
-        return new Date(a.createdAt) - new Date(b.createdAt);
-      case "priceAsc":
-        return (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0);
-      case "priceDesc":
-        return (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0);
-      case "ratingDesc":
-        return (b.rating || 5) - (a.rating || 5);
-      case "newest":
-      default:
-        return new Date(b.createdAt) - new Date(a.createdAt);
+      case "oldest": return new Date(a.createdAt) - new Date(b.createdAt);
+      case "priceAsc": return (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0);
+      case "priceDesc": return (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0);
+      case "ratingDesc": return (b.rating || 5) - (a.rating || 5);
+      default: return new Date(b.createdAt) - new Date(a.createdAt);
     }
   });
 
   const activeFilterCount = (filterCategory ? 1 : 0) + (filterCity ? 1 : 0);
 
-  const clearFilters = () => {
-    setFilterCategory("");
-    setFilterCity("");
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safe}>
+      {/* HEADER BAR */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>
-            {/* Eğer user.name varsa onu, yoksa "Vezir" yazdır */}
-            Merhaba, {user?.name ? user.name : "Vezir"} 👋
-          </Text>
-          <Text style={styles.subTitle}>
-            {USER_ROLE === "worker"
-              ? "Sana uygun en güncel işleri listeledik"
-              : "İşletmen için en yetenekli personeller"}
-          </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Image source={require('../../../assets/images/bull-logo.png')} style={styles.headerIcon} />
+          <Text style={styles.headerLogo}>BULL</Text>
         </View>
+        <Text style={styles.headerSub}>
+          {USER_ROLE === "worker" ? "İş Bul" : "Personel Bul"}
+        </Text>
       </View>
 
-      {/* BULL PART / BULL LOJİSTİK SEKMELERİ */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "Bull-Part" && styles.activeTab]}
-          onPress={() => setActiveTab("Bull-Part")}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="construct-outline" size={18} color={activeTab === "Bull-Part" ? "#FFF" : "#64748B"} />
-          <Text style={[styles.tabText, activeTab === "Bull-Part" && styles.activeTabText]}>BULL PART</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "Bull-Tır" && styles.activeTab]}
-          onPress={() => setActiveTab("Bull-Tır")}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="bus-outline" size={18} color={activeTab === "Bull-Tır" ? "#FFF" : "#64748B"} />
-          <Text style={[styles.tabText, activeTab === "Bull-Tır" && styles.activeTabText]}>BULL LOJİSTİK</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#64748B" />
+      {/* ARAMA */}
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={18} color="#999" />
         <TextInput
-          placeholder={
-            USER_ROLE === "worker" ? "İş veya şirket ara..." : "Personel ara..."
-          }
           style={styles.searchInput}
+          placeholder={USER_ROLE === "worker" ? "İş veya şirket ara..." : "Personel ara..."}
+          placeholderTextColor="#bbb"
           value={search}
           onChangeText={setSearch}
         />
+        {search ? (
+          <TouchableOpacity onPress={() => setSearch("")}>
+            <Ionicons name="close-circle" size={18} color="#ccc" />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
-      {/* SIRALA & FİLTRELE BUTONLARI */}
-      <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => setShowSortModal(true)}>
-          <Ionicons name="swap-vertical-outline" size={16} color="#003366" />
-          <Text style={styles.actionBtnText}>
-            Sırala: {SORT_OPTIONS.find(o => o.key === sortBy)?.label}
-          </Text>
+      {/* SEKMELER */}
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "Bull-Part" && styles.tabActive]}
+          onPress={() => setActiveTab("Bull-Part")}
+        >
+          <Text style={[styles.tabText, activeTab === "Bull-Part" && styles.tabTextActive]}>Bull Part</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.actionBtn, activeFilterCount > 0 && styles.actionBtnActive]}
-          onPress={() => setShowFilterModal(true)}
+          style={[styles.tab, activeTab === "Bull-Tır" && styles.tabActive]}
+          onPress={() => setActiveTab("Bull-Tır")}
         >
-          <Ionicons name="filter-outline" size={16} color={activeFilterCount > 0 ? "#FFF" : "#003366"} />
-          <Text style={[styles.actionBtnText, activeFilterCount > 0 && { color: "#FFF" }]}>
-            Filtrele{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-          </Text>
+          <Text style={[styles.tabText, activeTab === "Bull-Tır" && styles.tabTextActive]}>Bull Lojistik</Text>
         </TouchableOpacity>
       </View>
 
-      {loading && (
-        <ActivityIndicator
-          size="large"
-          color="#003366"
-          style={{ marginTop: 20 }}
-        />
-      )}
+      {/* SIRALA / FİLTRE */}
+      <View style={styles.filterRow}>
+        <TouchableOpacity style={styles.filterBtn} onPress={() => setShowSortModal(true)}>
+          <Ionicons name="swap-vertical" size={14} color="#003366" />
+          <Text style={styles.filterBtnText}>{SORT_OPTIONS.find(o => o.key === sortBy)?.label}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterBtn, activeFilterCount > 0 && styles.filterBtnActive]}
+          onPress={() => setShowFilterModal(true)}
+        >
+          <Ionicons name="options-outline" size={14} color={activeFilterCount > 0 ? "#FFF" : "#003366"} />
+          <Text style={[styles.filterBtnText, activeFilterCount > 0 && { color: "#FFF" }]}>
+            Filtre{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+          </Text>
+        </TouchableOpacity>
+        <Text style={styles.resultCount}>{dynamicData.length} sonuç</Text>
+      </View>
 
+      {loading && <ActivityIndicator size="large" color="#003366" style={{ marginTop: 20 }} />}
+
+      {/* LİSTE */}
       <FlatList
         data={dynamicData}
         keyExtractor={(item, index) => item._id || index.toString()}
-        renderItem={({ item }) => (
-          <JobCard item={item} navigation={navigation} />
-        )}
-        contentContainerStyle={{ padding: 20 }}
+        renderItem={({ item }) => <JobCard item={item} navigation={navigation} />}
+        contentContainerStyle={{ paddingBottom: 100 }}
         onRefresh={fetchJobs}
         refreshing={loading}
-        ListEmptyComponent={() =>
-          !loading && (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="alert-circle-outline" size={50} color="#E2E8F0" />
-              <Text style={styles.emptyText}>Henüz bir kayıt bulunamadı.</Text>
-            </View>
-          )
-        }
+        ListEmptyComponent={() => !loading && (
+          <View style={styles.empty}>
+            <Ionicons name="search-outline" size={48} color="#ddd" />
+            <Text style={styles.emptyTitle}>Sonuç bulunamadı</Text>
+            <Text style={styles.emptyText}>Filtreleri değiştirin veya yeni ilan oluşturun.</Text>
+          </View>
+        )}
       />
 
+      {/* FAB */}
       {USER_ROLE === "employer" ? (
-        <TouchableOpacity
-          style={styles.fabEmployer}
-          onPress={() => navigation.navigate("PostJob")}
-          activeOpacity={0.85}
-        >
-          <View style={styles.fabEmployerInner}>
-            <View style={styles.fabEmployerIconBox}>
-              <Ionicons name="briefcase" size={22} color="#FFF" />
-            </View>
-            <View style={styles.fabEmployerTextBox}>
-              <Text style={styles.fabEmployerTitle}>İlan Yayınla</Text>
-              <Text style={styles.fabEmployerSub}>Yeni iş ilanı oluştur</Text>
-            </View>
-            <Ionicons
-              name="arrow-forward-circle"
-              size={28}
-              color="rgba(255,255,255,0.7)"
-            />
-          </View>
+        <TouchableOpacity style={styles.fabWide} onPress={() => navigation.navigate("PostJob")} activeOpacity={0.8}>
+          <Ionicons name="add-circle" size={22} color="#FFF" />
+          <Text style={styles.fabWideText}>İlan Yayınla</Text>
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => navigation.navigate("PostJob")}
-        >
-          <Ionicons name="add" size={32} color="#FFF" />
+        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate("PostJob")} activeOpacity={0.8}>
+          <Ionicons name="add" size={26} color="#FFF" />
         </TouchableOpacity>
       )}
 
       {/* SIRALAMA MODALI */}
       <Modal visible={showSortModal} transparent animationType="slide">
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowSortModal(false)}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Sıralama Seçin</Text>
+        <TouchableOpacity style={styles.modalBg} activeOpacity={1} onPress={() => setShowSortModal(false)}>
+          <View style={styles.modalSheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Sıralama</Text>
             {SORT_OPTIONS.map((opt) => (
               <TouchableOpacity
                 key={opt.key}
-                style={[styles.modalOption, sortBy === opt.key && styles.modalOptionActive]}
+                style={[styles.sheetOption, sortBy === opt.key && styles.sheetOptionActive]}
                 onPress={() => { setSortBy(opt.key); setShowSortModal(false); }}
               >
-                <Ionicons name={opt.icon} size={20} color={sortBy === opt.key ? "#003366" : "#64748B"} />
-                <Text style={[styles.modalOptionText, sortBy === opt.key && styles.modalOptionTextActive]}>{opt.label}</Text>
-                {sortBy === opt.key && <Ionicons name="checkmark-circle" size={20} color="#003366" />}
+                <Text style={[styles.sheetOptionText, sortBy === opt.key && { color: '#003366', fontWeight: '700' }]}>{opt.label}</Text>
+                {sortBy === opt.key && <Ionicons name="checkmark" size={18} color="#003366" />}
               </TouchableOpacity>
             ))}
           </View>
@@ -305,61 +244,52 @@ export default function HomeScreen() {
 
       {/* FİLTRE MODALI */}
       <Modal visible={showFilterModal} transparent animationType="slide">
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowFilterModal(false)}>
-          <TouchableOpacity activeOpacity={1} style={styles.modalContent}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filtrele</Text>
+        <TouchableOpacity style={styles.modalBg} activeOpacity={1} onPress={() => setShowFilterModal(false)}>
+          <TouchableOpacity activeOpacity={1} style={styles.modalSheet}>
+            <View style={styles.sheetHandle} />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={styles.sheetTitle}>Filtre</Text>
               {activeFilterCount > 0 && (
-                <TouchableOpacity onPress={clearFilters}>
-                  <Text style={styles.clearFilterText}>Temizle</Text>
+                <TouchableOpacity onPress={() => { setFilterCategory(""); setFilterCity(""); }}>
+                  <Text style={{ color: '#E53935', fontSize: 14, fontWeight: '600' }}>Temizle</Text>
                 </TouchableOpacity>
               )}
             </View>
 
-            <Text style={styles.filterSectionTitle}>Kategori</Text>
+            <Text style={styles.filterLabel}>Kategori</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-              <View style={styles.filterChipsRow}>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity
-                  style={[styles.filterChip, !filterCategory && styles.filterChipActive]}
+                  style={[styles.chip, !filterCategory && styles.chipActive]}
                   onPress={() => setFilterCategory("")}
                 >
-                  <Text style={[styles.filterChipText, !filterCategory && styles.filterChipTextActive]}>Tümü</Text>
+                  <Text style={[styles.chipText, !filterCategory && styles.chipTextActive]}>Tümü</Text>
                 </TouchableOpacity>
                 {CATEGORIES.map((cat) => (
                   <TouchableOpacity
                     key={cat}
-                    style={[styles.filterChip, filterCategory === cat && styles.filterChipActive]}
+                    style={[styles.chip, filterCategory === cat && styles.chipActive]}
                     onPress={() => setFilterCategory(filterCategory === cat ? "" : cat)}
                   >
-                    <Text style={[styles.filterChipText, filterCategory === cat && styles.filterChipTextActive]}>{cat}</Text>
+                    <Text style={[styles.chipText, filterCategory === cat && styles.chipTextActive]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>
 
-            <Text style={styles.filterSectionTitle}>Şehir</Text>
-            <View style={styles.filterCityInput}>
-              <Ionicons name="location-outline" size={18} color="#64748B" />
+            <Text style={styles.filterLabel}>Şehir</Text>
+            <View style={styles.filterInput}>
               <TextInput
-                style={styles.filterCityText}
+                style={{ flex: 1, fontSize: 15, color: '#333' }}
                 placeholder="Şehir yazın (ör: İstanbul)"
                 value={filterCity}
                 onChangeText={setFilterCity}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor="#bbb"
               />
-              {filterCity ? (
-                <TouchableOpacity onPress={() => setFilterCity("")}>
-                  <Ionicons name="close-circle" size={18} color="#94A3B8" />
-                </TouchableOpacity>
-              ) : null}
             </View>
 
-            <TouchableOpacity
-              style={styles.filterApplyBtn}
-              onPress={() => setShowFilterModal(false)}
-            >
-              <Text style={styles.filterApplyBtnText}>Uygula ({dynamicData.length} sonuç)</Text>
+            <TouchableOpacity style={styles.filterApply} onPress={() => setShowFilterModal(false)}>
+              <Text style={styles.filterApplyText}>Uygula ({dynamicData.length} sonuç)</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
@@ -369,310 +299,96 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
-  header: { padding: 20, paddingBottom: 10 },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#003366" },
-  subTitle: { fontSize: 14, color: "#64748B", marginTop: 4 },
-  tabContainer: {
-    flexDirection: "row",
-    marginHorizontal: 20,
-    backgroundColor: "#E2E8F0",
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 12,
+  safe: { flex: 1, backgroundColor: "#FFF" },
+  // HEADER
+  header: {
+    backgroundColor: "#003366",
+    paddingHorizontal: 16, paddingVertical: 12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
+  headerIcon: { width: 34, height: 34, borderRadius: 6 },
+  headerLogo: { fontSize: 22, fontWeight: "900", color: "#FFF", letterSpacing: 2, marginLeft: 6 },
+  headerSub: { fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: "500" },
+  // ARAMA
+  searchBar: {
+    flexDirection: "row", alignItems: "center",
+    margin: 12, marginBottom: 8,
+    paddingHorizontal: 12, height: 42,
+    backgroundColor: "#F5F5F5", borderRadius: 8,
+    borderWidth: 1, borderColor: '#EBEBEB',
+  },
+  searchInput: { flex: 1, marginLeft: 8, fontSize: 15, color: "#333" },
+  // SEKMELER
+  tabs: { flexDirection: "row", marginHorizontal: 12, marginBottom: 8 },
   tab: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 11,
-    gap: 6,
+    flex: 1, paddingVertical: 10, alignItems: "center",
+    borderBottomWidth: 2, borderBottomColor: 'transparent',
   },
-  activeTab: {
-    backgroundColor: "#003366",
-    elevation: 3,
-    shadowColor: "#003366",
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+  tabActive: { borderBottomColor: "#28A745" },
+  tabText: { fontSize: 14, fontWeight: "600", color: "#999" },
+  tabTextActive: { color: "#28A745" },
+  // FİLTRE ROW
+  filterRow: { flexDirection: "row", paddingHorizontal: 12, marginBottom: 6, alignItems: 'center', gap: 8 },
+  filterBtn: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderWidth: 1, borderColor: '#DDD', borderRadius: 6,
   },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#64748B",
-  },
-  activeTabText: {
-    color: "#FFFFFF",
-  },
-  searchContainer: {
-    marginHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    paddingHorizontal: 15,
-    height: 50,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  searchInput: { flex: 1, marginLeft: 10, fontSize: 16 },
-  actionRow: {
-    flexDirection: "row",
-    marginHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 4,
-    gap: 10,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFF",
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    gap: 6,
-  },
-  actionBtnActive: {
-    backgroundColor: "#003366",
-    borderColor: "#003366",
-  },
-  actionBtnText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#003366",
-  },
-  // Modal Stilleri
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    paddingBottom: 40,
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#E2E8F0",
-    alignSelf: "center",
-    marginBottom: 16,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#003366",
-    marginBottom: 16,
-  },
-  modalOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    marginBottom: 6,
-    gap: 12,
-  },
-  modalOptionActive: {
-    backgroundColor: "#F0F5FF",
-  },
-  modalOptionText: {
-    flex: 1,
-    fontSize: 15,
-    color: "#475569",
-  },
-  modalOptionTextActive: {
-    color: "#003366",
-    fontWeight: "bold",
-  },
-  clearFilterText: {
-    color: "#EF4444",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  filterSectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#64748B",
-    marginBottom: 10,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  filterChipsRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  filterChipActive: {
-    backgroundColor: "#003366",
-    borderColor: "#003366",
-  },
-  filterChipText: {
-    fontSize: 13,
-    color: "#475569",
-    fontWeight: "500",
-  },
-  filterChipTextActive: {
-    color: "#FFF",
-  },
-  filterCityInput: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 48,
-    marginBottom: 20,
-    gap: 8,
-  },
-  filterCityText: {
-    flex: 1,
-    fontSize: 15,
-    color: "#1E293B",
-  },
-  filterApplyBtn: {
-    backgroundColor: "#003366",
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  filterApplyBtnText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  filterBtnActive: { backgroundColor: '#003366', borderColor: '#003366' },
+  filterBtnText: { fontSize: 12, fontWeight: "600", color: "#003366" },
+  resultCount: { marginLeft: 'auto', fontSize: 12, color: '#999' },
+  // KART
   card: {
-    backgroundColor: "#FFF",
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 15,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    flexDirection: "row", alignItems: 'center',
+    paddingHorizontal: 14, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: "#F0F0F0",
   },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  cardIcon: {
+    width: 48, height: 48, borderRadius: 10,
+    backgroundColor: "#F0F4FF",
+    justifyContent: "center", alignItems: "center",
   },
-  cardInfoContainer: { flexDirection: "row", alignItems: "center" },
-  imageContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  cardImage: { width: 44, height: 44, borderRadius: 22 },
-  titleContainer: { marginLeft: 12 },
-  jobTitle: { fontSize: 16, fontWeight: "bold", color: "#1E293B" },
-  ratingBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#28A745",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  ratingText: {
-    color: "#FFF",
-    fontSize: 12,
-    fontWeight: "bold",
-    marginLeft: 4,
-  },
-  subText: { color: "#64748B", fontSize: 13, marginTop: 2 },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 12,
-    alignItems: "center",
-  },
-  locationContainer: { flexDirection: "row", alignItems: "center" },
-  location: { color: "#94A3B8", fontSize: 12, marginLeft: 4 },
-  price: { color: "#28A745", fontWeight: "bold", fontSize: 15 },
+  cardInfo: { flex: 1, marginLeft: 12 },
+  cardTitle: { fontSize: 15, fontWeight: "600", color: "#222" },
+  cardCompany: { fontSize: 13, color: "#777", marginTop: 2 },
+  cardMeta: { flexDirection: "row", alignItems: "center", marginTop: 4, gap: 3 },
+  cardLocation: { fontSize: 12, color: "#999" },
+  cardRight: { alignItems: "flex-end", marginLeft: 8 },
+  cardPrice: { fontSize: 16, fontWeight: "700", color: "#2E7D32" },
+  cardRating: { flexDirection: "row", alignItems: "center", gap: 2, marginTop: 4 },
+  cardRatingText: { fontSize: 12, color: "#999", fontWeight: '600' },
+  // FAB
   fab: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    backgroundColor: "#003366",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
+    position: "absolute", bottom: 20, right: 16,
+    backgroundColor: "#28A745", width: 52, height: 52, borderRadius: 14,
+    justifyContent: "center", alignItems: "center",
+    elevation: 4, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6,
   },
-  fabEmployer: {
-    position: "absolute",
-    bottom: 24,
-    left: 20,
-    right: 20,
-    backgroundColor: "#003366",
-    borderRadius: 20,
-    elevation: 8,
-    shadowColor: "#003366",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
+  fabWide: {
+    position: "absolute", bottom: 20, left: 16, right: 16,
+    backgroundColor: "#28A745", borderRadius: 10, height: 50,
+    flexDirection: 'row', justifyContent: "center", alignItems: "center", gap: 8,
+    elevation: 4, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6,
   },
-  fabEmployerInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  fabEmployerIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  fabEmployerTextBox: {
-    flex: 1,
-    marginLeft: 14,
-  },
-  fabEmployerTitle: {
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "800",
-    letterSpacing: 0.3,
-  },
-  fabEmployerSub: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 12,
-    marginTop: 2,
-    fontWeight: "500",
-  },
-  emptyContainer: { alignItems: "center", marginTop: 80 },
-  emptyText: { color: "#64748B", marginTop: 10, fontSize: 16 },
+  fabWideText: { color: "#FFF", fontSize: 16, fontWeight: "700" },
+  // MODAL
+  modalBg: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  modalSheet: { backgroundColor: "#FFF", borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 36 },
+  sheetHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "#DDD", alignSelf: "center", marginBottom: 16 },
+  sheetTitle: { fontSize: 18, fontWeight: "700", color: "#222", marginBottom: 16 },
+  sheetOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
+  sheetOptionActive: { backgroundColor: '#F0F4FF' },
+  sheetOptionText: { fontSize: 15, color: '#555' },
+  filterLabel: { fontSize: 13, fontWeight: "700", color: "#666", marginBottom: 8, textTransform: 'uppercase' },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#EEE' },
+  chipActive: { backgroundColor: '#003366', borderColor: '#003366' },
+  chipText: { fontSize: 13, color: '#555', fontWeight: '600' },
+  chipTextActive: { color: '#FFF' },
+  filterInput: { borderWidth: 1, borderColor: '#DDD', borderRadius: 8, paddingHorizontal: 12, height: 44, justifyContent: 'center', marginBottom: 20 },
+  filterApply: { backgroundColor: '#003366', borderRadius: 8, paddingVertical: 14, alignItems: 'center' },
+  filterApplyText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  // BOŞ
+  empty: { alignItems: "center", marginTop: 80, paddingHorizontal: 40 },
+  emptyTitle: { color: "#666", fontSize: 16, fontWeight: "600", marginTop: 12 },
+  emptyText: { color: "#999", fontSize: 14, textAlign: "center", marginTop: 4 },
 });

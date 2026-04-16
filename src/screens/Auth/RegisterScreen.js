@@ -25,8 +25,24 @@ const CITIES = [
   "Hatay", "Isparta", "Mersin", "İstanbul", "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir",
   "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla", "Muş", "Nevşehir",
   "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Tekirdağ", "Tokat",
-  "Trabzon", "Tunceli", "Şanlıurfa", "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman",
+  "Şanlıurfa", "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman",
   "Kırıkkale", "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük", "Kilis", "Osmaniye", "Düzce"
+];
+
+const SECTORS = [
+  "Lojistik / Taşıma",
+  "Depo / Antrepo",
+  "İnşaat / Şantiye",
+  "Temizlik",
+  "Gıda / Üretim",
+  "Kargo / Kurye",
+  "Garson / Komi",
+  "Satış / Pazarlama",
+  "Bilişim / Yazılım",
+  "Otomotiv / Sanayi",
+  "Tekstil / Konfeksiyon",
+  "Güvenlik",
+  "Diğer"
 ];
 
 export default function RegisterScreen({ navigation }) {
@@ -42,6 +58,9 @@ export default function RegisterScreen({ navigation }) {
   const [districtsList, setDistrictsList] = useState([]);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [districtInputMode, setDistrictInputMode] = useState(false);
+
+  const [showSectorModal, setShowSectorModal] = useState(false);
+  const [sectorSearch, setSectorSearch] = useState('');
 
   const [date, setDate] = useState(new Date(2000, 0, 1));
   
@@ -243,7 +262,7 @@ export default function RegisterScreen({ navigation }) {
               </View>
 
               {showDatePicker && (
-                <View style={Platform.OS === 'ios' ? { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 10, marginTop: -10, marginBottom: 15, borderWidth: 1, borderColor: '#E2E8F0' } : null}>
+                <View style={Platform.OS === 'ios' ? { backgroundColor: '#F6F4F0', borderRadius: 14, padding: 10, marginTop: -10, marginBottom: 15 } : null}>
                   <DateTimePicker
                     value={date}
                     mode="date"
@@ -336,14 +355,15 @@ export default function RegisterScreen({ navigation }) {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>İlgi Alanları / Sektörler</Text>
-                <TextInput 
-                  style={[styles.input, styles.textArea]} 
-                  placeholder="İnşaat, Garsonluk, Yazılım vb." 
-                  multiline 
-                  value={form.interests} 
-                  onChangeText={(t) => handleChange('interests', t)} 
-                />
+                <Text style={styles.label}>Sektör / İlgi Alanı</Text>
+                <TouchableOpacity 
+                  style={styles.dateButton}
+                  onPress={() => setShowSectorModal(true)}
+                >
+                  <Text style={[styles.dateText, !form.interests && styles.placeholderText]}>
+                    {form.interests || "Sektör Seçiniz..."}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.inputGroup}>
@@ -483,6 +503,50 @@ export default function RegisterScreen({ navigation }) {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Sektör Seçim Modalı */}
+      <Modal visible={showSectorModal} animationType="slide" transparent={true}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === "ios" ? "padding" : "height"} 
+          style={{ flex: 1 }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Sektör Seçiniz</Text>
+                <TouchableOpacity onPress={() => setShowSectorModal(false)}>
+                  <Text style={styles.modalCloseText}>Kapat</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <TextInput 
+                style={styles.searchInput}
+                placeholder="Sektör Ara..."
+                value={sectorSearch}
+                onChangeText={setSectorSearch}
+              />
+
+            <FlatList
+              data={SECTORS.filter(s => s.toLocaleLowerCase('tr-TR').includes(sectorSearch.toLocaleLowerCase('tr-TR')))}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  style={styles.cityItem}
+                  onPress={() => {
+                    handleChange('interests', item);
+                    setShowSectorModal(false);
+                    setSectorSearch('');
+                  }}
+                >
+                  <Text style={styles.cityItemText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+              keyboardShouldPersistTaps="handled"
+            />
+          </View>
+        </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -491,7 +555,7 @@ export default function RegisterScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F6F4F0',
   },
   keyboardView: {
     flex: 1,
@@ -501,18 +565,19 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
   },
   header: {
-    marginBottom: 35,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#003366',
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#1A1D21',
   },
   subtitle: {
-    fontSize: 14,
-    color: '#64748B',
+    fontSize: 13,
+    color: '#6B7280',
     marginTop: 5,
     letterSpacing: 1,
+    fontWeight: '600',
   },
   formArea: {
     width: '100%',
@@ -528,19 +593,21 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#003366',
+    color: '#4A5568',
     marginBottom: 8,
-    marginLeft: 4,
+    marginLeft: 2,
+    letterSpacing: 0.2,
   },
   input: {
     height: 52,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E8E4DE',
     paddingHorizontal: 16,
-    color: '#0F172A',
+    color: '#1A1D21',
     fontSize: 15,
+    fontWeight: '500',
   },
   textArea: {
     height: 90,
@@ -549,33 +616,39 @@ const styles = StyleSheet.create({
   },
   dateButton: {
     height: 52,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E8E4DE',
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
   dateText: {
     fontSize: 15,
-    color: '#0F172A',
+    color: '#1A1D21',
+    fontWeight: '500',
   },
   placeholderText: {
-    color: '#94A3B8',
+    color: '#B8BEC7',
   },
   mainButton: {
     backgroundColor: '#28A745',
     height: 56,
-    borderRadius: 14,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 15,
-    elevation: 3,
+    shadowColor: '#1B7A30',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 5,
   },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
+    letterSpacing: 0.3,
   },
   roleRow: {
     flexDirection: 'row',
@@ -585,9 +658,9 @@ const styles = StyleSheet.create({
   roleBox: {
     flex: 1,
     height: 55,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 2,
-    borderColor: '#E2E8F0',
+    borderColor: '#E8E4DE',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFF',
@@ -598,7 +671,8 @@ const styles = StyleSheet.create({
   },
   roleLabel: {
     fontWeight: '700',
-    color: '#64748B',
+    color: '#6B7280',
+    fontSize: 13,
   },
   roleLabelActive: {
     color: '#FFF',
@@ -611,30 +685,34 @@ const styles = StyleSheet.create({
   secondaryButton: {
     flex: 1,
     height: 56,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#64748B',
+    borderRadius: 16,
+    backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#64748B',
+    color: '#4A5568',
     fontWeight: '700',
   },
   submitButton: {
     flex: 2,
     backgroundColor: '#28A745',
     height: 56,
-    borderRadius: 14,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#1B7A30',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   footerLink: {
     marginTop: 35,
     alignItems: 'center',
   },
   footerText: {
-    color: '#64748B',
+    color: '#6B7280',
     fontSize: 14,
   },
   boldText: {
@@ -643,15 +721,15 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#FFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     maxHeight: '80%',
-    padding: 20,
+    padding: 24,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -661,30 +739,30 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#003366',
+    fontWeight: '800',
+    color: '#1A1D21',
   },
   modalCloseText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#EF4444',
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   searchInput: {
-    backgroundColor: '#F1F5F9',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: '#F6F4F0',
+    borderRadius: 14,
+    padding: 14,
     marginBottom: 15,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    fontSize: 15,
+    fontWeight: '500',
   },
   cityItem: {
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F1ED',
   },
   cityItemText: {
     fontSize: 16,
-    color: '#1E293B',
+    color: '#1A1D21',
+    fontWeight: '500',
   },
 });

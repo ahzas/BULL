@@ -7,302 +7,333 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Modal,
   RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
-
 import API_BASE from "../../config/api";
 
 export default function MyJobsScreen() {
   const { user } = useContext(AuthContext);
   const userData = user?.user || user;
   const userId = userData?._id || userData?.id;
+  const isEmployer = userData?.role === "employer";
+  const role = isEmployer ? "employer" : "worker";
 
   const [activeTab, setActiveTab] = useState("active");
   const [activeJobs, setActiveJobs] = useState([]);
-  const [pastJobs, setPastJobs] = useState([]);
+  const [completedJobs, setCompletedJobs] = useState([]);
+  const [pendingHires, setPendingHires] = useState([]);
+  const [pendingCompletions, setPendingCompletions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [rateModalVisible, setRateModalVisible] = useState(false);
-  const [selectedJobToRate, setSelectedJobToRate] = useState(null);
-  const [rating, setRating] = useState(0);
+  // Puanlama
+  const [ratingModal, setRatingModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [ratingScore, setRatingScore] = useState(5);
 
-  const fetchJobs = async () => {
+  const fetchAll = async () => {
     if (!userId) return;
     try {
-      const response = await axios.get(`${API_BASE}/jobs/my-jobs/${userId}`);
-      if (response.data) {
-        setActiveJobs(response.data.activeJobs || []);
-        setPastJobs(response.data.pastJobs || []);
+      const [jobsRes, approvalsRes] = await Promise.all([
+        axios.get(`${API_BASE}/jobs/my-jobs/${userId}/${role}`),
+        axios.get(`${API_BASE}/jobs/approvals/${userId}/${role}`),
+      ]);
+      if (jobsRes.data) {
+        setActiveJobs(jobsRes.data.activeJobs || []);
+        setCompletedJobs(jobsRes.data.completedJobs || []);
+      }
+      if (approvalsRes.data) {
+        setPendingHires(approvalsRes.data.pendingHires || []);
+        setPendingCompletions(approvalsRes.data.pendingCompletions || []);
       }
     } catch (error) {
-      console.log("İşlerim çekilemedi:", error.message);
+      console.log("Veri çekilemedi:", error.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      fetchJobs();
-    }, [userId]),
-  );
+  useFocusEffect(useCallback(() => { setLoading(true); fetchAll(); }, [userId]));
+  const onRefresh = () => { setRefreshing(true); fetchAll(); };
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchJobs();
-  };
-
-  const handleRateSubmit = async () => {
-    if (rating < 1) return Alert.alert("Hata", "Lütfen 1 ile 5 arasında bir puan seçin.");
-    
+  // --- PUANLAMA ---
+  const openRating = (job) => { setSelectedJob(job); setRatingScore(5); setRatingModal(true); };
+  const submitRating = async () => {
+    if (!selectedJob) return;
     try {
-      // Dinamik olarak ilanın sahibi biz miyiz diye kontrol ederek oylayacağımız kişiyi seçeceğiz
-      const isOwner = selectedJobToRate.ownerId?._id === userId || selectedJobToRate.ownerId === userId;
-      
-      const targetUserId = isOwner 
-          ? (selectedJobToRate.assignedTo?._id || selectedJobToRate.assignedTo)
-          : (selectedJobToRate.ownerId?._id || selectedJobToRate.ownerId);
-
-      if (!targetUserId) {
-         return Alert.alert("Hata", "Oylanacak kullanıcı bulunamadı.");
-      }
-
-      await axios.post(`${API_BASE}/jobs/${selectedJobToRate._id}/rate`, {
-         targetUserId: targetUserId,
-         ratingValue: rating,
-         role: isOwner ? "employer" : "worker"
+      const targetId = isEmployer
+        ? selectedJob.hiredWorker?._id || selectedJob.hiredWorker
+        : selectedJob.ownerId?._id || selectedJob.ownerId;
+      await axios.put(`${API_BASE}/jobs/${selectedJob._id}/rate`, {
+        raterId: userId, targetId, score: ratingScore,
       });
-
-      Alert.alert("Başarılı", "Gerçek değerlendirmeniz sisteme kaydedildi! Teşekkürler.");
-      setRateModalVisible(false);
-      fetchJobs(); // Tabloyu yenileyerek butonun gitmesini sağla
-    } catch (e) {
-      Alert.alert("Hata", e.response?.data?.message || "Puanlama sırasında bir hata oluştu.");
+      Alert.alert("Teşekkürler", "Puanınız kaydedildi.");
+      setRatingModal(false);
+      fetchAll();
+    } catch (error) {
+      Alert.alert("Hata", error.response?.data?.message || "Puanlama yapılamadı.");
     }
   };
 
+  // --- ONAY İŞLEMLERİ ---
+  const handleHireWorker = async (jobId, workerId, workerName) => {
+    Alert.alert("İşe Al", `${workerName} adlı kişiyi onaylamak istiyor musunuz?`, [
+      { text: "İptal", style: "cancel" },
+      {
+        text: "Onayla", onPress: async () => {
+          try {
+            await axios.put(`${API_BASE}/jobs/${jobId}/hire`, { workerId });
+            Alert.alert("Başarılı", "İşçi işe alındı!");
+            fetchAll();
+          } catch { Alert.alert("Hata", "İşlem başarısız."); }
+        },
+      },
+    ]);
+  };
+
+  const handleApproveCompletion = async (jobId) => {
+    Alert.alert("Onay", "İşin tamamlandığını onaylıyor musunuz?", [
+      { text: "Vazgeç", style: "cancel" },
+      {
+        text: "Onayla", onPress: async () => {
+          try {
+            const res = await axios.put(`${API_BASE}/jobs/${jobId}/approve-completion`, { role });
+            if (res.data.job.status === "completed") {
+              Alert.alert("Tamamlandı! 🎉", "İş başarıyla tamamlandı.");
+            } else {
+              Alert.alert("Başarılı", "Onayınız iletildi. Karşı tarafın onayı bekleniyor.");
+            }
+            fetchAll();
+          } catch { Alert.alert("Hata", "İşlem sırasında sorun oluştu."); }
+        },
+      },
+    ]);
+  };
+
+  // --- RENDER: AKTİF / GEÇMİŞ İŞ KARTI ---
+  const getStatusInfo = (job) => {
+    if (activeTab === "active") {
+      if (job.status === "in_progress") return { label: "Devam Ediyor", color: "#28A745" };
+      return { label: "Aktif", color: "#003366" };
+    }
+    return { label: "Tamamlandı", color: "#888" };
+  };
+
   const renderJobItem = ({ item }) => {
-    const isCompleted = item.status === "completed";
-    
-    // İşveren (İlan Sahibi) miyiz? Bunu State'den değil işin verisinden kesin olarak doğruluyoruz.
-    const isOwner = item.ownerId?._id === userId || item.ownerId === userId;
-    
-    // Bize Gözükecek Profil (İşverensek işçiyi, işçiysek işvereni gösteririz)
-    const profileToShow = isOwner ? item.assignedTo : item.ownerId;
-    const profileName = profileToShow?.name || profileToShow?.company || null;
-    const profileRating = profileToShow?.rating || 5.0;
-    const profileRatingCount = profileToShow?.ratingCount || 0;
-
-    // Oy verebilir mi? (Eğer ilan sahibiysek employerRated, işçiysek workerRated işaretlerine bakarız)
-    const canRate = isCompleted && (isOwner ? !item.employerRated : !item.workerRated);
-
-    const rawDate = isCompleted ? item.completedAt || item.createdAt : item.createdAt;
-    const dateObj = new Date(rawDate);
-    const dateStr = dateObj.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", });
+    const status = getStatusInfo(item);
+    const canRate = activeTab === "completed" && !item.ratings?.find((r) => String(r.raterId) === String(userId));
 
     return (
-      <View style={styles.jobCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.titleCol}>
-            <Text style={styles.jobTitle}>{item.title}</Text>
-            <Text style={styles.companyName}>{item.company}</Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: isCompleted ? "#DCFCE7" : "#DBEAFE" }]}>
-            <Text style={[styles.statusText, { color: isCompleted ? "#166534" : "#1E40AF" }]}>
-              {isCompleted ? "Tamamlandı" : "Aktif"}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.cardDivider} />
-
-        <View style={styles.cardFooter}>
+      <View style={styles.card}>
+        <View style={styles.cardTop}>
           <View style={{ flex: 1 }}>
-            <View style={styles.infoRow}>
-              <Ionicons name="calendar-outline" size={16} color="#64748B" />
-              <Text style={styles.infoText}>{dateStr}</Text>
-            </View>
-
-            {isCompleted && profileToShow && (
-              <View style={[styles.infoRow, { marginTop: 6 }]}>
-                <Ionicons name="person-circle-outline" size={16} color="#003366" />
-                <Text style={[styles.infoText, { color: "#003366", fontWeight: "bold" }]}>
-                  {profileName}{" "}
-                  <Text style={{ fontWeight: "normal", color: "#64748B" }}>
-                    (⭐{profileRating.toFixed(1)} - {profileRatingCount} Değerlendirme)
-                  </Text>
-                </Text>
-              </View>
-            )}
-
-            {canRate && (
-              <TouchableOpacity 
-                style={styles.rateButton} 
-                onPress={() => {
-                  setSelectedJobToRate(item);
-                  setRating(0);
-                  setRateModalVisible(true);
-                }}
-              >
-                <Ionicons name="star" color="#FFF" size={14} />
-                <Text style={styles.rateButtonText}>
-                   {isOwner ? "İşçiyi Puanla" : "İşvereni Puanla"}
-                </Text>
-              </TouchableOpacity>
-            )}
+            <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+            <Text style={styles.cardCompany}>{item.company}</Text>
           </View>
-
-          <View style={styles.priceCol}>
-            <Text style={styles.priceValue}>{item.price} ₺</Text>
-          </View>
+          <Text style={styles.cardPrice}>{item.price} ₺</Text>
+        </View>
+        <View style={styles.cardBottom}>
+          <View style={[styles.statusDot, { backgroundColor: status.color }]} />
+          <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
+          {canRate && (
+            <TouchableOpacity style={styles.rateBtn} onPress={() => openRating(item)}>
+              <Text style={styles.rateBtnText}>Puan Ver</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>İşlerim</Text>
-      </View>
+  // --- RENDER: ONAY KARTI ---
+  const renderApprovalItem = ({ item }) => {
+    // Başvurulu iş mı?
+    if (item.applicants) {
+      return (
+        <View style={styles.approvalCard}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardCompany}>{item.applicants.length} başvuru</Text>
+          <View style={styles.divider} />
+          {item.applicants.map((worker) => (
+            <View key={worker._id || worker.id} style={styles.applicantRow}>
+              <View style={styles.applicantAvatar}>
+                <Text style={styles.avatarLetter}>{(worker.name || "?")[0].toUpperCase()}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.applicantName}>{worker.name || "İsimsiz"}</Text>
+                <Text style={styles.applicantRating}>⭐ {worker.rating?.toFixed(1) || "5.0"}</Text>
+              </View>
+              <TouchableOpacity style={styles.hireBtn} onPress={() => handleHireWorker(item._id || item.id, worker._id || worker.id, worker.name || "İşçi")}>
+                <Text style={styles.hireBtnText}>İşe Al</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      );
+    }
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "active" && styles.activeTab]}
-          onPress={() => setActiveTab("active")}
-        >
-          <Text style={[styles.tabText, activeTab === "active" && styles.activeTabText]}>
-            Aktif İlanlarım ({activeJobs?.length || 0})
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "past" && styles.activeTab]}
-          onPress={() => setActiveTab("past")}
-        >
-          <Text style={[styles.tabText, activeTab === "past" && styles.activeTabText]}>
-            Geçmiş İşler ({pastJobs?.length || 0})
-          </Text>
-        </TouchableOpacity>
+    // İş bitimi onayı
+    const hasApproved = isEmployer ? item.employerApproved : item.workerApproved;
+    return (
+      <View style={styles.approvalCard}>
+        <View style={styles.cardTop}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardPrice}>{item.price} ₺</Text>
+        </View>
+        <View style={styles.cardBottom}>
+          <View style={[styles.statusDot, { backgroundColor: hasApproved ? '#28A745' : '#F5A623' }]} />
+          <Text style={styles.statusText}>{hasApproved ? "Onayladınız" : "Onay Bekliyor"}</Text>
+        </View>
+        {!hasApproved && (
+          <TouchableOpacity style={styles.completeBtn} onPress={() => handleApproveCompletion(item._id || item.id)}>
+            <Text style={styles.completeBtnText}>{isEmployer ? "İş Tamamlandı" : "İşi Tamamladım"}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
+  // --- Onaylar sekmesi için combined data ---
+  const approvalData = [...pendingHires, ...pendingCompletions];
+
+  // --- Aktif sekme verisi ---
+  const getTabData = () => {
+    switch (activeTab) {
+      case "active": return activeJobs;
+      case "completed": return completedJobs;
+      case "approvals": return approvalData;
+      default: return [];
+    }
+  };
+
+  const getTabRender = () => {
+    if (activeTab === "approvals") return renderApprovalItem;
+    return renderJobItem;
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <Text style={styles.pageTitle}>İşlerim</Text>
+
+      {/* 3 SEKME */}
+      <View style={styles.tabs}>
+        {[
+          { key: "active", label: `Aktif (${activeJobs.length})` },
+          { key: "completed", label: `Geçmiş (${completedJobs.length})` },
+          { key: "approvals", label: `Onaylar (${approvalData.length})` },
+        ].map((t) => (
+          <TouchableOpacity
+            key={t.key}
+            style={[styles.tab, activeTab === t.key && styles.tabActive]}
+            onPress={() => setActiveTab(t.key)}
+          >
+            <Text style={[styles.tabText, activeTab === t.key && styles.tabTextActive]}>{t.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#003366" />
-        </View>
+        <ActivityIndicator size="large" color="#28A745" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
-          data={activeTab === "active" ? activeJobs : pastJobs}
-          renderItem={renderJobItem}
-          keyExtractor={(item, index) => item._id?.toString() || index.toString()}
-          contentContainerStyle={styles.listPadding}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#003366"]} />}
+          data={getTabData()}
+          renderItem={getTabRender()}
+          keyExtractor={(item, i) => item._id?.toString() || i.toString()}
+          contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 40 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#28A745"]} />}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="briefcase-outline" size={64} color="#CBD5E1" />
-              <Text style={styles.emptyText}>
-                {activeTab === "active"
-                  ? "Henüz aktif bir ilanınız bulunmuyor."
-                  : "Tamamlanmış geçmiş bir işiniz yok."}
+            <View style={styles.empty}>
+              <Ionicons name={activeTab === "approvals" ? "checkmark-circle-outline" : "folder-open-outline"} size={48} color="#ddd" />
+              <Text style={styles.emptyTitle}>
+                {activeTab === "approvals" ? "Bekleyen onay yok" : "Henüz iş yok"}
               </Text>
             </View>
           }
         />
       )}
 
-      {/* Puanlama Modalı */}
-      <Modal visible={rateModalVisible} animationType="fade" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-             <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Gerçek Değerlendirme</Text>
-                <TouchableOpacity onPress={() => setRateModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#EF4444" />
+      {/* PUANLAMA MODALI */}
+      <Modal visible={ratingModal} transparent animationType="slide">
+        <TouchableOpacity style={styles.modalBg} activeOpacity={1} onPress={() => setRatingModal(false)}>
+          <View style={styles.modalSheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Puanla</Text>
+            <Text style={styles.sheetSub}>{selectedJob?.title}</Text>
+            <View style={styles.starsRow}>
+              {[1, 2, 3, 4, 5].map((s) => (
+                <TouchableOpacity key={s} onPress={() => setRatingScore(s)}>
+                  <Ionicons name={s <= ratingScore ? "star" : "star-outline"} size={36} color={s <= ratingScore ? "#F5A623" : "#DDD"} />
                 </TouchableOpacity>
-             </View>
-             
-             <Text style={{textAlign: 'center', marginBottom: 20, color: '#334155'}}>
-                 İş başarıyla tamamlandı. Karşı tarafın platformdaki güvenilirlik puanını (yıldızını) belirlemek için lütfen 1 ile 5 arası bir puan verin:
-             </Text>
-
-             <View style={styles.starsRow}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                    <Ionicons 
-                      name={star <= rating ? "star" : "star-outline"} 
-                      size={40} 
-                      color="#F59E0B" 
-                    />
-                  </TouchableOpacity>
-                ))}
-             </View>
-
-             <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                 {rating > 0 && <Text style={{fontSize: 16, fontWeight: 'bold', color: '#F59E0B'}}>{rating} Yıldız</Text>}
-             </View>
-
-             <TouchableOpacity style={styles.submitRateBtn} onPress={handleRateSubmit}>
-                 <Text style={styles.submitRateText}>PUANI GÖNDER</Text>
-             </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.scoreLabel}>{ratingScore}/5</Text>
+            <TouchableOpacity style={styles.submitBtn} onPress={submitRating}>
+              <Text style={styles.submitBtnText}>Gönder</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
-
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
-  header: { padding: 20 },
-  headerTitle: { fontSize: 24, fontWeight: "bold", color: "#003366" },
-  tabContainer: {
-    flexDirection: "row", marginHorizontal: 20, backgroundColor: "#E2E8F0",
-    borderRadius: 12, padding: 4, marginBottom: 20,
+  safe: { flex: 1, backgroundColor: "#FFF" },
+  pageTitle: { fontSize: 22, fontWeight: "700", color: "#222", padding: 16, paddingBottom: 0 },
+  // SEKMELER
+  tabs: { flexDirection: "row", marginHorizontal: 16, marginTop: 12, marginBottom: 4 },
+  tab: { flex: 1, paddingVertical: 10, alignItems: "center", borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabActive: { borderBottomColor: "#28A745" },
+  tabText: { fontSize: 13, fontWeight: "600", color: "#999" },
+  tabTextActive: { color: "#28A745" },
+  // İŞ KARTI
+  card: {
+    paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "#F0F0F0",
+    paddingHorizontal: 4,
   },
-  tab: { flex: 1, paddingVertical: 10, alignItems: "center", borderRadius: 10 },
-  activeTab: { backgroundColor: "#FFFFFF", elevation: 2, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4, },
-  tabText: { fontSize: 13, fontWeight: "600", color: "#64748B" },
-  activeTabText: { color: "#003366" },
-  listPadding: { paddingHorizontal: 20, paddingBottom: 40 },
-  jobCard: {
-    backgroundColor: "#FFF", borderRadius: 16, padding: 16, marginBottom: 16,
-    borderWidth: 1, borderColor: "#F1F5F9", elevation: 2,
+  cardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  cardTitle: { fontSize: 16, fontWeight: "600", color: "#222" },
+  cardCompany: { fontSize: 13, color: "#888", marginTop: 2 },
+  cardPrice: { fontSize: 17, fontWeight: "700", color: "#28A745" },
+  cardBottom: { flexDirection: "row", alignItems: "center", marginTop: 10, gap: 6 },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusText: { fontSize: 13, fontWeight: "600", flex: 1, color: "#666" },
+  rateBtn: { backgroundColor: "#28A745", paddingHorizontal: 14, paddingVertical: 7, borderRadius: 6 },
+  rateBtnText: { color: "#FFF", fontSize: 13, fontWeight: "600" },
+  // ONAY KARTI
+  approvalCard: {
+    backgroundColor: "#FFF", borderRadius: 10, padding: 16, marginTop: 12,
+    borderWidth: 1, borderColor: '#EBEBEB',
   },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", },
-  titleCol: { flex: 1, paddingRight: 10 },
-  jobTitle: { fontSize: 16, fontWeight: "bold", color: "#1E293B" },
-  companyName: { fontSize: 13, color: "#64748B", marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { fontSize: 11, fontWeight: "bold" },
-  cardDivider: { height: 1, backgroundColor: "#F1F5F9", marginVertical: 12 },
-  cardFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", },
-  infoRow: { flexDirection: "row", alignItems: "center" },
-  infoText: { fontSize: 13, color: "#64748B", marginLeft: 6 },
-  rateButton: {
-      flexDirection: 'row', alignItems: 'center', backgroundColor: '#F59E0B',
-      paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, marginTop: 8, alignSelf: 'flex-start'
-  },
-  rateButtonText: { color: '#FFF', fontSize: 12, fontWeight: 'bold', marginLeft: 4},
-  priceCol: { alignItems: "flex-end", justifyContent: "flex-end" },
-  priceValue: { fontSize: 16, fontWeight: "bold", color: "#28A745" },
-  emptyContainer: { flex: 1, alignItems: "center", marginTop: 100 },
-  emptyText: { marginTop: 15, color: "#94A3B8", fontSize: 14, textAlign: "center", },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: 'center' },
-  modalContent: { backgroundColor: "#FFF", borderRadius: 20, padding: 20, width: '90%', shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 10, elevation: 5 },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 15, },
-  modalTitle: { fontSize: 18, fontWeight: "bold", color: "#003366", },
-  starsRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 15 },
-  submitRateBtn: { backgroundColor: '#003366', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  submitRateText: { color: '#FFF', fontSize: 15, fontWeight: 'bold' }
+  divider: { height: 1, backgroundColor: '#F0F0F0', marginVertical: 12 },
+  applicantRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 },
+  applicantAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#003366', justifyContent: 'center', alignItems: 'center' },
+  avatarLetter: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  applicantName: { fontSize: 15, fontWeight: '600', color: '#222' },
+  applicantRating: { fontSize: 12, color: '#999', marginTop: 1 },
+  hireBtn: { backgroundColor: '#28A745', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6 },
+  hireBtnText: { color: '#FFF', fontSize: 13, fontWeight: '600' },
+  completeBtn: { backgroundColor: '#28A745', borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 12 },
+  completeBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  // BOŞ
+  empty: { alignItems: "center", marginTop: 80 },
+  emptyTitle: { color: "#666", fontSize: 16, fontWeight: "600", marginTop: 12 },
+  // MODAL
+  modalBg: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  modalSheet: { backgroundColor: "#FFF", borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 24, paddingBottom: 36, alignItems: "center" },
+  sheetHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "#DDD", marginBottom: 16 },
+  sheetTitle: { fontSize: 20, fontWeight: "700", color: "#222" },
+  sheetSub: { fontSize: 14, color: "#888", marginTop: 4, marginBottom: 20 },
+  starsRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+  scoreLabel: { fontSize: 16, fontWeight: "700", color: "#F5A623", marginBottom: 24 },
+  submitBtn: { backgroundColor: "#28A745", width: "100%", height: 50, borderRadius: 8, justifyContent: "center", alignItems: "center" },
+  submitBtnText: { color: "#FFF", fontSize: 16, fontWeight: "700" },
 });

@@ -48,43 +48,40 @@ function AppTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#28A745", // BULL Yeşil
-        tabBarInactiveTintColor: "#64748B",
+        tabBarActiveTintColor: "#28A745",
+        tabBarInactiveTintColor: "#999",
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
           borderTopWidth: 1,
-          borderTopColor: "#E2E8F0",
-          height: 65,
-          paddingBottom: 10,
-          paddingTop: 10,
+          borderTopColor: '#F0F0F0',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "600",
         },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-
           if (route.name === "Ana Sayfa") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Harita") {
             iconName = focused ? "map" : "map-outline";
           } else if (route.name === "İşlerim") {
             iconName = focused ? "briefcase" : "briefcase-outline";
-          } else if (route.name === "Onaylar") {
-            iconName = focused
-              ? "checkmark-done-circle"
-              : "checkmark-done-circle-outline";
           } else if (route.name === "Cüzdan") {
             iconName = focused ? "wallet" : "wallet-outline";
           } else if (route.name === "Profil") {
             iconName = focused ? "person" : "person-outline";
           }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={22} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Ana Sayfa" component={HomeScreen} />
       <Tab.Screen name="Harita" component={MapScreen} />
       <Tab.Screen name="İşlerim" component={MyJobsScreen} />
-      <Tab.Screen name="Onaylar" component={ApprovalsScreen} />
       <Tab.Screen name="Cüzdan" component={WalletScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
     </Tab.Navigator>

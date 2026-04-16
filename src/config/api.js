@@ -17,7 +17,7 @@
 
 import axios from "axios";
 
-const API_BASE = "http://192.168.1.23:5000/api";
+const API_BASE = "http://172.20.10.2:5000/api";
 
 // ─── Localtunnel Bypass ───────────────────────────────────────
 // Localtunnel her isteğe bir "Click to Continue" sayfası gösterir.

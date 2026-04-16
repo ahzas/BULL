@@ -139,7 +139,7 @@ export default function TermsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1, backgroundColor: "#F6F4F0" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -148,17 +148,17 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: "#FFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#F3F1ED",
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F3F1ED",
     justifyContent: "center",
     alignItems: "center",
   },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: "#003366" },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: "#1A1D21" },
   content: { padding: 24, paddingBottom: 40 },
   badge: {
     flexDirection: "row",

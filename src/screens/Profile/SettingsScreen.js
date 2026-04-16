@@ -85,7 +85,7 @@ const ToggleRow = ({
     <Switch
       value={value}
       onValueChange={onValueChange}
-      trackColor={{ false: "#E2E8F0", true: "#28A745" }}
+      trackColor={{ false: "#DDDAD4", true: "#28A745" }}
       thumbColor="#FFF"
       disabled={disabled}
     />
@@ -454,7 +454,7 @@ export default function SettingsScreen({ navigation }) {
                         paddingVertical: 10,
                         borderBottomWidth:
                           index < COMMISSION_TIERS.length - 1 ? 1 : 0,
-                        borderBottomColor: "#F1F5F9",
+                        borderBottomColor: "#F3F1ED",
                         opacity: isActive ? 1 : 0.5,
                       }}
                     >
@@ -621,7 +621,7 @@ export default function SettingsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F6F4F0" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -629,21 +629,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: "#FFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F3F1ED",
     justifyContent: "center",
     alignItems: "center",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
-    color: "#003366",
+    color: "#1A1D21",
     letterSpacing: 0.3,
   },
   scrollContent: { padding: 20 },
@@ -655,21 +653,21 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "800",
-    color: "#94A3B8",
+    color: "#8C95A3",
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 1.2,
     marginLeft: 8,
   },
   card: {
     backgroundColor: "#FFF",
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
+    shadowColor: "#1B2E4B",
+    shadowOpacity: 0.03,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 1,
   },
   infoRow: {
     flexDirection: "row",
@@ -678,23 +676,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F8FAFC",
+    borderBottomColor: "#F3F1ED",
   },
   infoLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   infoIconBox: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F3F1ED",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
-  infoLabel: { fontSize: 14, fontWeight: "600", color: "#1E293B" },
+  infoLabel: { fontSize: 14, fontWeight: "600", color: "#1A1D21" },
   infoValue: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#64748B",
+    color: "#6B7280",
     maxWidth: "45%",
     textAlign: "right",
   },
@@ -702,10 +700,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: "#003366",
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 10,
+    backgroundColor: "#F6F4F0",
+    borderWidth: 1.5,
+    borderColor: "#E8E4DE",
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     minWidth: 140,
@@ -718,7 +716,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F8FAFC",
+    borderBottomColor: "#F3F1ED",
   },
   toggleLeft: {
     flexDirection: "row",
@@ -727,7 +725,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   toggleTextBox: { flex: 1 },
-  toggleSubtitle: { fontSize: 11, color: "#94A3B8", marginTop: 2 },
+  toggleSubtitle: { fontSize: 11, color: "#8C95A3", marginTop: 2 },
   actionRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -735,7 +733,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F8FAFC",
+    borderBottomColor: "#F3F1ED",
   },
   actionRowDanger: { borderBottomWidth: 0 },
   editBtn: {
@@ -745,11 +743,9 @@ const styles = StyleSheet.create({
     margin: 12,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    backgroundColor: "#F3F1ED",
   },
-  editBtnSave: { backgroundColor: "#28A745", borderColor: "#28A745" },
+  editBtnSave: { backgroundColor: "#28A745" },
   editBtnText: {
     fontSize: 14,
     fontWeight: "700",
@@ -757,23 +753,23 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   editBtnTextSave: { color: "#FFF" },
-  statsRow: { flexDirection: "row", gap: 12 },
+  statsRow: { flexDirection: "row", gap: 10 },
   statBox: {
     flex: 1,
     backgroundColor: "#FFF",
     borderRadius: 16,
     paddingVertical: 18,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
+    shadowColor: "#1B2E4B",
+    shadowOpacity: 0.03,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 1,
   },
-  statValue: { fontSize: 20, fontWeight: "800", color: "#0F172A" },
+  statValue: { fontSize: 20, fontWeight: "800", color: "#1A1D21" },
   statLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#94A3B8",
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#8C95A3",
     marginTop: 4,
     textTransform: "uppercase",
     letterSpacing: 0.5,
