@@ -110,13 +110,18 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* 2. STATİK ROL GÖSTERGESİ */}
-          <View style={styles.roleStaticBadge}>
+          {/* 2. STATİK ROL GÖSTERGESİ (TIKLANABİLİR) */}
+          <TouchableOpacity 
+            style={styles.roleStaticBadge}
+            onPress={() => isEmployer ? navigation.navigate("EmployerProfile") : navigation.navigate("WorkerProfile")}
+            activeOpacity={0.8}
+          >
             <Ionicons name={isEmployer ? "briefcase" : "hammer"} size={20} color="#FFF" />
             <Text style={styles.roleStaticBadgeText}>
               {isEmployer ? "İşveren Profili" : "İşçi Profili"}
             </Text>
-          </View>
+            <Ionicons name="chevron-forward" size={18} color="#FFF" style={{ position: 'absolute', right: 15 }} />
+          </TouchableOpacity>
         </View>
 
         {/* 3. ÖZEL MENÜLER (DİNAMİK) */}
@@ -124,35 +129,6 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.sectionTitle}>
             {isEmployer ? "İşveren Araçları" : "BULL Ayrıcalıkları"}
           </Text>
-
-          {!isEmployer ? (
-            <>
-              <SpecialMenu
-                icon="trending-down-outline"
-                title="Komisyon Seviyem"
-                subtitle={`${getCommissionTier(user?.streak || 0).label} • İşçi %${(getCommissionTier(user?.streak || 0).workerRate * 100).toFixed(0)} | İşveren %${(getCommissionTier(user?.streak || 0).employerRate * 100).toFixed(0)}`}
-                color="#28A745"
-                onPress={() => navigation.navigate("Settings")}
-              />
-            </>
-          ) : (
-            <>
-              <SpecialMenu
-                icon="business-outline"
-                title="İşletme Profilim"
-                subtitle="Sarp Gıda Ltd. Şti." // İşletme bilginiz buraya bağlandı [cite: 2025-10-12]
-                color="#003366"
-                onPress={() => navigation.navigate("BusinessProfile")} // Navigasyon eklendi
-              />
-              <SpecialMenu
-                icon="people-outline"
-                title="Aktif Çalışanlarım"
-                subtitle="Sahadaki personeli takip edin."
-                color="#6366F1"
-                onPress={() => navigation.navigate("ActiveWorkers")} // Navigasyon eklendi
-              />
-            </>
-          )}
 
           <SpecialMenu
             icon="heart-outline"
@@ -206,8 +182,6 @@ export default function ProfileScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
-// ... styles kısmı aynı kalacak
 
 const styles = StyleSheet.create({
   container: {
@@ -275,7 +249,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     marginTop: 10,
-    gap: 10
+    gap: 10,
+    position: "relative"
   },
   roleStaticBadgeText: {
     color: "#FFF",

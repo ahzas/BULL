@@ -9,6 +9,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 // VERİ HAVUZU (CONTEXT)
 import { AuthProvider } from "./src/context/AuthContext";
 import { JobProvider } from "./src/context/JobContext";
+import { WalletProvider } from "./src/context/WalletContext";
 
 // EKRANLAR (AUTH)
 import LoginScreen from "./src/screens/Auth/LoginScreen";
@@ -32,6 +33,11 @@ import BusinessProfileScreen from "./src/screens/Profile/BusinessProfileScreen";
 import ChangePasswordScreen from "./src/screens/Profile/ChangePasswordScreen";
 import SettingsScreen from "./src/screens/Profile/SettingsScreen";
 import ActiveWorkersScreen from "./src/screens/Profile/ActiveWorkersScreen";
+import WorkerProfileScreen from "./src/screens/Profile/WorkerProfileScreen";
+import EmployerProfileScreen from "./src/screens/Profile/EmployerProfileScreen";
+import WalletBalanceScreen from "./src/screens/Wallet/WalletBalanceScreen";
+import WithdrawMoneyScreen from "./src/screens/Wallet/WithdrawMoneyScreen";
+import BonusesScreen from "./src/screens/Wallet/BonusesScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -90,19 +96,20 @@ export default function App() {
   return (
     <AuthProvider>
       <JobProvider>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <StatusBar style="dark" />
-            <Stack.Navigator
-              initialRouteName="Login"
-              screenOptions={{
-                headerShown: false,
-                gestureEnabled: true,
-                gestureDirection: "horizontal",
-                animation: "slide_from_right",
-              }}
-            >
-              {/* Kimlik Doğrulama Ekranları */}
+        <WalletProvider>
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <StatusBar style="dark" />
+              <Stack.Navigator
+                initialRouteName="Login"
+                screenOptions={{
+                  headerShown: false,
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                  animation: "slide_from_right",
+                }}
+              >
+                {/* Kimlik Doğrulama Ekranları */}
               <Stack.Screen name="Login" component={LoginScreen} />
               <Stack.Screen name="Register" component={RegisterScreen} />
               <Stack.Screen name="Onboarding" component={OnboardingScreen} />
@@ -145,9 +152,35 @@ export default function App() {
                 component={ActiveWorkersScreen}
                 options={{ headerShown: false }}
               />
+              <Stack.Screen
+                name="WorkerProfile"
+                component={WorkerProfileScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="EmployerProfile"
+                component={EmployerProfileScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="WalletBalance"
+                component={WalletBalanceScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="WithdrawMoney"
+                component={WithdrawMoneyScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Bonuses"
+                component={BonusesScreen}
+                options={{ headerShown: false }}
+              />
             </Stack.Navigator>
           </NavigationContainer>
         </SafeAreaProvider>
+        </WalletProvider>
       </JobProvider>
     </AuthProvider>
   );

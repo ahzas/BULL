@@ -9,22 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useContext } from 'react';
+import { WalletContext } from '../../context/WalletContext';
 
-export default function WalletScreen() {
-  // Örnek Veriler (Backend'den gelecek)
-  const walletData = {
-    balance: "4.750,00",
-    activeStreak: 12, // 12 gündür aralıksız çalışıyor
-    bonusRate: "%8",   // Mevcut streak sayesinde kazandığı ek komisyon
-    totalBonusEarned: "380,00"
-  };
-
-  const transactions = [
-    { id: '1', title: 'Garsonluk Ödemesi', date: 'Bugün', amount: '+450 TL', type: 'earn' },
-    { id: '2', title: 'Streak Bonusu (%5)', date: 'Bugün', amount: '+22.5 TL', type: 'bonus' },
-    { id: '3', title: 'Banka Hesabına Çekim', date: 'Dün', amount: '-1.200 TL', type: 'withdraw' },
-  ];
-
+export default function WalletScreen({ navigation }) {
+  const { balance, transactions } = useContext(WalletContext);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -41,21 +30,21 @@ export default function WalletScreen() {
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Mevcut Bakiyem</Text>
           <View style={styles.balanceRow}>
-            <Text style={styles.balanceAmount}>{walletData.balance}</Text>
+            <Text style={styles.balanceAmount}>{(balance.available || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
             <Text style={styles.currency}>₺</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.streakInfo}>
             <Ionicons name="flame" size={20} color="#FF8C00" />
             <Text style={styles.streakText}>
-              <Text style={{fontWeight: 'bold'}}>{walletData.activeStreak} Günlük Seri!</Text> Bir sonraki işinde {walletData.bonusRate} ek kazanç sağla.
+              <Text style={{fontWeight: 'bold'}}>{balance.activeStreak} Günlük Seri!</Text> Bir sonraki işinde {balance.bonusRate} ek kazanç sağla.
             </Text>
           </View>
         </View>
 
         {/* ANA KATEGORİLER (Menü Seçenekleri) */}
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("WalletBalance")}>
             <View style={[styles.iconBox, {backgroundColor: '#E0F2F1'}]}>
               <Ionicons name="wallet-outline" size={24} color="#28A745" />
             </View>
@@ -63,7 +52,7 @@ export default function WalletScreen() {
             <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("WithdrawMoney")}>
             <View style={[styles.iconBox, {backgroundColor: '#FFF4E5'}]}>
               <Ionicons name="cash-outline" size={24} color="#FF8C00" />
             </View>
@@ -71,7 +60,7 @@ export default function WalletScreen() {
             <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("Bonuses")}>
             <View style={[styles.iconBox, {backgroundColor: '#EEF2FF'}]}>
               <Ionicons name="gift-outline" size={24} color="#003366" />
             </View>
