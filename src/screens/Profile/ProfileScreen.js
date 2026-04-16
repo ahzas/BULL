@@ -1,397 +1,146 @@
 // src/screens/Profile/ProfileScreen.js
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useContext } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
-import { getCommissionTier } from "../../utils/commission";
 
-// Uyarıyı önlemek için dışarıda tanımlanan bileşen
-const SpecialMenu = ({ icon, title, subtitle, color, onPress }) => (
-  <TouchableOpacity
-    style={styles.specialCard}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <View style={[styles.specialIconBox, { backgroundColor: color + "12" }]}>
-      <Ionicons name={icon} size={22} color={color} />
-    </View>
-    <View style={styles.specialTextContent}>
-      <Text style={styles.specialTitle}>{title}</Text>
-      <Text style={styles.specialSubtitle}>{subtitle}</Text>
-    </View>
-    <View style={styles.menuArrow}>
-      <Ionicons name="chevron-forward" size={16} color="#B8BEC7" />
-    </View>
-  </TouchableOpacity>
-);
-
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen() {
   const { user, logout } = useContext(AuthContext);
-  const isEmployer = user?.user?.role === "employer" || user?.role === "employer";
+  const navigation = useNavigation();
+  const userData = user?.user || user;
+  const isEmployer = userData?.role === "employer";
 
-  // Veri Kontrolü: Backend'den gelen ismin kaybolmaması için geliştirilmiş mantık
-  const getFullName = () => {
-    const data = user?.user || user;
-    if (data?.firstName && data?.lastName) {
-      return `${data.firstName} ${data.lastName}`;
-    }
-    return data?.name || "Kullanıcı";
-  };
-
-  const fullName = getFullName();
-  const calculateAge = (birthDateStr) => {
-    if (!birthDateStr) return "--";
-    let birthDate;
-    if (birthDateStr.includes("/")) {
-      const [day, month, year] = birthDateStr.split("/");
-      birthDate = new Date(`${year}-${month}-${day}`);
-    } else {
-      birthDate = new Date(birthDateStr);
-    }
-    if (isNaN(birthDate)) return "--";
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
-  const birthDate = user?.user?.birthDate || user?.birthDate;
-  const age = calculateAge(birthDate);
+  const MENU_ITEMS = [
+    { icon: "settings-outline", label: "Ayarlar", screen: "Settings" },
+    { icon: "lock-closed-outline", label: "Şifre Değiştir", screen: "ChangePassword" },
+    ...(isEmployer ? [
+      { icon: "people-outline", label: "Aktif Çalışanlar", screen: "ActiveWorkers" },
+      { icon: "business-outline", label: "İşletme Profili", screen: "BusinessProfile" },
+    ] : []),
+    { icon: "document-text-outline", label: "Kullanım Koşulları", screen: "Terms" },
+    { icon: "shield-checkmark-outline", label: "Gizlilik Politikası", screen: "Privacy" },
+  ];
 
   const handleLogout = () => {
-    Alert.alert("Çıkış", "Oturumu kapatmak istiyor musunuz?", [
-      { text: "Vazgeç", style: "cancel" },
-      {
-        text: "Evet",
-        onPress: () => {
-          logout();
-          navigation.replace("Login");
-        },
-      },
+    Alert.alert("Çıkış Yap", "Hesabınızdan çıkış yapmak istediğinize emin misiniz?", [
+      { text: "İptal", style: "cancel" },
+      { text: "Çıkış Yap", style: "destructive", onPress: () => logout() },
     ]);
   };
 
-  const initials = fullName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+  const initial = (userData?.name || "?")[0].toUpperCase();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* 1. ÜST PROFİL — KOYU ARKAPLAN */}
-        <View style={styles.headerCard}>
-          <View style={styles.headerBg}>
-            <View style={styles.userInfo}>
-              <View style={styles.avatarContainer}>
-                <View style={styles.avatarFallback}>
-                  <Text style={styles.avatarInitials}>{initials}</Text>
-                </View>
-                <TouchableOpacity style={styles.editBadge}>
-                  <Ionicons name="camera" size={12} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.userNameContainer}>
-                <Text style={styles.userName}>{fullName}</Text>
-                <Text style={styles.userSub}>
-                  {age} Yaşında • ⭐ {user?.user?.rating?.toFixed(1) || user?.rating?.toFixed(1) || "5.0"} 
-                  <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}> ({user?.user?.ratingCount || user?.ratingCount || 0})</Text>
-                </Text>
-              </View>
-              <TouchableOpacity 
-                style={styles.settingsBtn}
-                onPress={() => navigation.navigate("Settings")}
-              >
-                <Ionicons name="settings-outline" size={20} color="rgba(255,255,255,0.7)" />
-              </TouchableOpacity>
-            </View>
-
-            {/* 2. ROL GÖSTERGESİ */}
+    <SafeAreaView style={styles.safe}>
+      <ScrollView>
+        {/* PROFİL KARTI */}
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarLetter}>{initial}</Text>
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.userName}>{userData?.name || "Kullanıcı"}</Text>
+            <Text style={styles.userEmail}>{userData?.email || ""}</Text>
             <View style={styles.roleBadge}>
-              <Ionicons name={isEmployer ? "briefcase" : "hammer"} size={16} color={isEmployer ? "#003366" : "#28A745"} />
-              <Text style={styles.roleBadgeText}>
-                {isEmployer ? "İşveren Profili" : "İşçi Profili"}
-              </Text>
+              <Text style={styles.roleText}>{isEmployer ? "İşveren" : "İşçi"}</Text>
             </View>
           </View>
         </View>
 
-        {/* 3. ÖZEL MENÜLER (DİNAMİK) */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {isEmployer ? "İşveren Araçları" : "BULL Ayrıcalıkları"}
-          </Text>
-
-          {!isEmployer ? (
-            <>
-              <SpecialMenu
-                icon="trending-down-outline"
-                title="Komisyon Seviyem"
-                subtitle={`${getCommissionTier(user?.streak || 0).label} • İşçi %${(getCommissionTier(user?.streak || 0).workerRate * 100).toFixed(0)} | İşveren %${(getCommissionTier(user?.streak || 0).employerRate * 100).toFixed(0)}`}
-                color="#28A745"
-                onPress={() => navigation.navigate("Settings")}
-              />
-            </>
-          ) : (
-            <>
-              <SpecialMenu
-                icon="business-outline"
-                title="İşletme Profilim"
-                subtitle="Sarp Gıda Ltd. Şti." // İşletme bilginiz buraya bağlandı [cite: 2025-10-12]
-                color="#003366"
-                onPress={() => navigation.navigate("BusinessProfile")} // Navigasyon eklendi
-              />
-              <SpecialMenu
-                icon="people-outline"
-                title="Aktif Çalışanlarım"
-                subtitle="Sahadaki personeli takip edin."
-                color="#6366F1"
-                onPress={() => navigation.navigate("ActiveWorkers")} // Navigasyon eklendi
-              />
-            </>
-          )}
-
-          <SpecialMenu
-            icon="heart-outline"
-            title="Ahde Vefa Puanları"
-            subtitle={`${user?.bullPoints || 0} Puan`}
-            color="#EF4444"
-            onPress={() =>
-              Alert.alert(
-                "Puanlarım",
-                "Ahde Vefa puanlarınızla ayrıcalık kazanın.",
-              )
-            }
-          />
+        {/* İSTATİSTİKLER */}
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statNum}>{userData?.rating?.toFixed(1) || "5.0"}</Text>
+            <Text style={styles.statLabel}>Puan</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statBox}>
+            <Text style={styles.statNum}>{userData?.ratingCount || 0}</Text>
+            <Text style={styles.statLabel}>Değerlendirme</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statBox}>
+            <Text style={styles.statNum}>{userData?.streak || 0}</Text>
+            <Text style={styles.statLabel}>Gün Serisi</Text>
+          </View>
         </View>
 
-        {/* 4. GENEL AYARLAR */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Genel</Text>
-          <TouchableOpacity style={styles.standardOption}>
-            <View style={[styles.optionIconBox, { backgroundColor: '#EEF2FF' }]}>
-              <Ionicons name="card-outline" size={18} color="#6366F1" />
-            </View>
-            <Text style={styles.standardOptionText}>
-              Ödeme Yöntemlerim & IBAN
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.standardOption}
-            onPress={() => navigation.navigate("Help")}
-          >
-            <View style={[styles.optionIconBox, { backgroundColor: '#FFF4E5' }]}>
-              <Ionicons name="help-circle-outline" size={18} color="#E67E22" />
-            </View>
-            <Text style={styles.standardOptionText}>
-              Yardım ve Destek (ITSM)
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
-          </TouchableOpacity>
+        {/* MENÜ */}
+        <View style={styles.menuCard}>
+          {MENU_ITEMS.map((item, i) => (
+            <TouchableOpacity
+              key={i}
+              style={[styles.menuRow, i === MENU_ITEMS.length - 1 && { borderBottomWidth: 0 }]}
+              onPress={() => navigation.navigate(item.screen)}
+            >
+              <Ionicons name={item.icon} size={20} color="#555" />
+              <Text style={styles.menuLabel}>{item.label}</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ccc" />
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* 5. ÇIKIŞ */}
+        {/* ÇIKIŞ */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons
-            name="log-out-outline"
-            size={18}
-            color="#EF4444"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.logoutBtnText}>Oturumu Kapat</Text>
+          <Ionicons name="log-out-outline" size={18} color="#E53935" />
+          <Text style={styles.logoutText}>Çıkış Yap</Text>
         </TouchableOpacity>
 
-        <View style={{ height: 40 }} />
+        <Text style={styles.version}>BULL v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F6F4F0",
+  safe: { flex: 1, backgroundColor: "#F5F5F5" },
+  profileCard: {
+    backgroundColor: "#FFF", margin: 12, borderRadius: 10,
+    padding: 20, flexDirection: "row", alignItems: "center",
+    borderWidth: 1, borderColor: '#EBEBEB',
   },
-  headerCard: {
-    backgroundColor: "#003366",
+  avatar: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: "#003366", justifyContent: "center", alignItems: "center",
   },
-  headerBg: {
-    padding: 20,
-    paddingBottom: 24,
-  },
-  userInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  avatarContainer: {
-    position: "relative",
-  },
-  avatarFallback: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  avatarInitials: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#FFF",
-  },
-  editBadge: {
-    position: "absolute",
-    bottom: -2,
-    right: -2,
-    backgroundColor: "#28A745",
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#003366",
-  },
-  userNameContainer: {
-    marginLeft: 15,
-    flex: 1,
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#FFFFFF",
-  },
-  userSub: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.7)",
-    marginTop: 3,
-  },
-  settingsBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  avatarLetter: { color: "#FFF", fontSize: 24, fontWeight: "800" },
+  profileInfo: { marginLeft: 16, flex: 1 },
+  userName: { fontSize: 18, fontWeight: "700", color: "#222" },
+  userEmail: { fontSize: 13, color: "#888", marginTop: 2 },
   roleBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.95)",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    justifyContent: "center",
-    gap: 8,
+    alignSelf: "flex-start", marginTop: 6,
+    backgroundColor: '#F0F4FF', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 4,
   },
-  roleBadgeText: {
-    color: "#1A1D21",
-    fontWeight: "700",
-    fontSize: 14,
+  roleText: { fontSize: 12, fontWeight: "600", color: "#003366" },
+  // İSTATİSTİK
+  statsRow: {
+    flexDirection: "row", backgroundColor: "#FFF",
+    marginHorizontal: 12, borderRadius: 10,
+    paddingVertical: 16, borderWidth: 1, borderColor: '#EBEBEB',
+    marginBottom: 12,
   },
-  section: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
+  statBox: { flex: 1, alignItems: "center" },
+  statNum: { fontSize: 20, fontWeight: "700", color: "#222" },
+  statLabel: { fontSize: 11, color: "#999", marginTop: 2, fontWeight: '500' },
+  statDivider: { width: 1, backgroundColor: "#EBEBEB" },
+  // MENÜ
+  menuCard: {
+    backgroundColor: "#FFF", marginHorizontal: 12, borderRadius: 10,
+    borderWidth: 1, borderColor: '#EBEBEB',
   },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#8C95A3",
-    marginBottom: 14,
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
-    marginLeft: 2,
+  menuRow: {
+    flexDirection: "row", alignItems: "center", paddingVertical: 15, paddingHorizontal: 16,
+    borderBottomWidth: 1, borderBottomColor: "#F5F5F5",
   },
-  specialCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    padding: 14,
-    borderRadius: 16,
-    marginBottom: 10,
-    shadowColor: "#1B2E4B",
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
-  specialIconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  specialTextContent: {
-    flex: 1,
-    marginLeft: 14,
-  },
-  specialTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1A1D21",
-  },
-  specialSubtitle: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 2,
-  },
-  menuArrow: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: "#F3F1ED",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  standardOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    padding: 14,
-    borderRadius: 14,
-    marginBottom: 8,
-  },
-  optionIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  standardOptionText: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 14,
-    color: "#1A1D21",
-    fontWeight: "600",
-  },
+  menuLabel: { flex: 1, marginLeft: 14, fontSize: 15, color: "#333", fontWeight: '500' },
+  // ÇIKIŞ
   logoutBtn: {
-    marginHorizontal: 20,
-    marginTop: 24,
-    padding: 16,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
-    backgroundColor: "#FEF2F2",
-    borderRadius: 14,
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    margin: 12, paddingVertical: 14, borderRadius: 10,
+    backgroundColor: "#FFF", borderWidth: 1, borderColor: '#EBEBEB', gap: 8,
   },
-  logoutBtnText: {
-    color: "#EF4444",
-    fontWeight: "700",
-    fontSize: 15,
-  },
+  logoutText: { fontSize: 15, fontWeight: "600", color: "#E53935" },
+  version: { textAlign: "center", fontSize: 12, color: "#ccc", marginVertical: 20 },
 });

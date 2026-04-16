@@ -42,52 +42,40 @@ function AppTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#003366",
-        tabBarInactiveTintColor: "#9CA3AF",
+        tabBarActiveTintColor: "#28A745",
+        tabBarInactiveTintColor: "#999",
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
-          borderTopWidth: 0,
-          height: 68,
-          paddingBottom: 10,
-          paddingTop: 8,
-          elevation: 16,
-          shadowColor: "#1B2E4B",
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: 0.08,
-          shadowRadius: 16,
+          borderTopWidth: 1,
+          borderTopColor: '#F0F0F0',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: "700",
-          letterSpacing: 0.3,
+          fontSize: 11,
+          fontWeight: "600",
         },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-
           if (route.name === "Ana Sayfa") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Harita") {
             iconName = focused ? "map" : "map-outline";
           } else if (route.name === "İşlerim") {
             iconName = focused ? "briefcase" : "briefcase-outline";
-          } else if (route.name === "Onaylar") {
-            iconName = focused
-              ? "checkmark-done-circle"
-              : "checkmark-done-circle-outline";
           } else if (route.name === "Cüzdan") {
             iconName = focused ? "wallet" : "wallet-outline";
           } else if (route.name === "Profil") {
             iconName = focused ? "person" : "person-outline";
           }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={22} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Ana Sayfa" component={HomeScreen} />
       <Tab.Screen name="Harita" component={MapScreen} />
       <Tab.Screen name="İşlerim" component={MyJobsScreen} />
-      <Tab.Screen name="Onaylar" component={ApprovalsScreen} />
       <Tab.Screen name="Cüzdan" component={WalletScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
     </Tab.Navigator>

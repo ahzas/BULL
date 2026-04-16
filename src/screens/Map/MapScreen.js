@@ -8,16 +8,15 @@ import {
   Dimensions,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import MapView, { Callout, Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
 import { JobContext } from "../../context/JobContext";
+import API_BASE from "../../config/api";
 
 const { width, height } = Dimensions.get("window");
-import API_BASE from "../../config/api";
 
 export default function MapScreen({ navigation }) {
   const { user } = useContext(AuthContext);
@@ -27,23 +26,19 @@ export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [nearbyWorkers, setNearbyWorkers] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
 
   const isEmployer = userData?.role === "employer";
 
-  // Konum al ve sunucuya gönder
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setErrorMsg("Konum izni reddedildi. Harita çalışamaz.");
+        setErrorMsg("Konum izni reddedildi.");
         return;
       }
-
       let loc = await Location.getCurrentPositionAsync({});
       setLocation(loc);
 
-      // Konumu sunucuya kaydet
       const userId = userData?._id || userData?.id;
       if (userId) {
         try {
@@ -59,39 +54,28 @@ export default function MapScreen({ navigation }) {
     })();
   }, []);
 
-  // İşverense yakındaki işçileri çek
   const fetchNearbyWorkers = useCallback(async () => {
     if (!isEmployer) return;
     try {
-      setRefreshing(true);
       const response = await axios.get(`${API_BASE}/users/nearby-workers`);
       setNearbyWorkers(response.data || []);
     } catch (e) {
       console.log("Yakın işçi çekme hatası:", e.message);
-    } finally {
-      setRefreshing(false);
     }
   }, [isEmployer]);
 
   useEffect(() => {
-    if (location && isEmployer) {
-      fetchNearbyWorkers();
-    }
+    if (location && isEmployer) fetchNearbyWorkers();
   }, [location, isEmployer, fetchNearbyWorkers]);
 
-  // Koordinatlı iş ilanlarını filtrele
   const jobsWithCoords = jobs.filter(
-    (job) =>
-      job.latitude &&
-      job.longitude &&
-      (job.type === "job_offer" || job.type === "job"),
+    (job) => job.latitude && job.longitude && (job.type === "job_offer" || job.type === "job"),
   );
 
-  // Yükleniyor ekranı
   if (!location) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#003366" />
+        <ActivityIndicator size="large" color="#28A745" />
         {errorMsg ? (
           <Text style={styles.errorText}>{errorMsg}</Text>
         ) : (
@@ -125,13 +109,14 @@ export default function MapScreen({ navigation }) {
                 longitude: job.longitude,
               }}
               pinColor="#28A745"
+              onCalloutPress={() => navigation.navigate("JobDetail", { job })}
             >
-              <Callout onPress={() => navigation.navigate("JobDetail", { job })}>
+              <Callout tooltip={false}>
                 <View style={styles.callout}>
                   <Text style={styles.calloutTitle}>{job.title}</Text>
                   <Text style={styles.calloutCompany}>{job.company}</Text>
-                  <Text style={styles.calloutPrice}>{job.price} TL</Text>
-                  <Text style={styles.calloutLocation}>📍 {job.location}</Text>
+                  <Text style={styles.calloutPrice}>{job.price} ₺</Text>
+                  <Text style={styles.calloutHint}>Detay için dokunun →</Text>
                 </View>
               </Callout>
             </Marker>
@@ -164,97 +149,49 @@ export default function MapScreen({ navigation }) {
       </MapView>
 
       {/* ÜST BİLGİ KARTI */}
-      <View
-        style={[styles.headerCard, isEmployer && styles.headerCardEmployer]}
-      >
-        <View style={styles.headerTop}>
-          <Ionicons
-            name={isEmployer ? "people" : "briefcase"}
-            size={20}
-            color={isEmployer ? "#003366" : "#28A745"}
-          />
-          <Text style={styles.greeting}>
-            {isEmployer ? "Yakındaki İşçiler" : "Yakındaki İş İlanları"}
+      <View style={styles.headerCard}>
+        <Ionicons
+          name={isEmployer ? "people" : "briefcase"}
+          size={18}
+          color="#28A745"
+        />
+        <View style={{ marginLeft: 10, flex: 1 }}>
+          <Text style={styles.headerTitle}>
+            {isEmployer ? "Yakındaki İşçiler" : "Yakındaki İlanlar"}
+          </Text>
+          <Text style={styles.headerSub}>
+            {isEmployer
+              ? `${nearbyWorkers.length} işçi konumunu paylaşıyor`
+              : `${jobsWithCoords.length} ilan haritada`}
           </Text>
         </View>
-        <Text style={styles.subtext}>
-          {isEmployer
-            ? `${nearbyWorkers.length} işçi konumunu paylaşıyor`
-            : `${jobsWithCoords.length} ilan haritada görünüyor`}
-        </Text>
       </View>
-
-      {/* YENİLE BUTONU */}
-      <TouchableOpacity
-        style={styles.refreshBtn}
-        onPress={isEmployer ? fetchNearbyWorkers : () => {}}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="refresh" size={20} color="#003366" />
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F6F4F0" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F6F4F0" },
-  errorText: { marginTop: 10, color: "#EF4444", fontSize: 14 },
-  loadingText: { marginTop: 10, color: "#6B7280", fontSize: 14 },
+  container: { flex: 1, backgroundColor: "#FFF" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFF" },
+  errorText: { marginTop: 10, color: "#E53935", fontSize: 14 },
+  loadingText: { marginTop: 10, color: "#888", fontSize: 14 },
   map: { width, height },
+  // ÜST KART
   headerCard: {
-    position: "absolute",
-    top: 60,
-    left: 20,
-    right: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.97)",
-    padding: 16,
-    borderRadius: 18,
-    shadowColor: "#1B2E4B",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 6,
-    borderLeftWidth: 4,
-    borderLeftColor: "#28A745",
+    position: "absolute", top: 56, left: 12, right: 12,
+    backgroundColor: "#FFF", borderRadius: 10,
+    padding: 14, flexDirection: "row", alignItems: "center",
+    borderWidth: 1, borderColor: '#EBEBEB',
+    elevation: 3, shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1, shadowRadius: 6,
   },
-  headerCardEmployer: {
-    borderLeftColor: "#003366",
-  },
-  headerTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  greeting: { fontSize: 17, fontWeight: "800", color: "#1A1D21" },
-  subtext: {
-    fontSize: 13,
-    color: "#6B7280",
-    fontWeight: "500",
-    marginTop: 4,
-    marginLeft: 28,
-  },
-  refreshBtn: {
-    position: "absolute",
-    top: 60,
-    right: 20,
-    width: 0,
-    height: 0, // Hidden by default (overlay with header)
-  },
-  // Callout stilleri
-  callout: { padding: 4, minWidth: 140 },
-  calloutTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#1A1D21",
-    marginBottom: 2,
-  },
-  calloutCompany: { fontSize: 12, color: "#64748B" },
-  calloutPrice: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#28A745",
-    marginTop: 4,
-  },
-  calloutLocation: { fontSize: 11, color: "#94A3B8", marginTop: 2 },
+  headerTitle: { fontSize: 15, fontWeight: "700", color: "#222" },
+  headerSub: { fontSize: 12, color: "#888", marginTop: 1 },
+  // CALLOUT
+  callout: { padding: 6, minWidth: 150 },
+  calloutTitle: { fontSize: 14, fontWeight: "700", color: "#222", marginBottom: 2 },
+  calloutCompany: { fontSize: 12, color: "#888" },
+  calloutPrice: { fontSize: 14, fontWeight: "700", color: "#28A745", marginTop: 4 },
+  calloutHint: { fontSize: 11, color: "#28A745", marginTop: 4, fontWeight: '500' },
 });
