@@ -42,12 +42,12 @@ export default function MyJobsScreen() {
     if (!userId) return;
     try {
       const [jobsRes, approvalsRes] = await Promise.all([
-        axios.get(`${API_BASE}/jobs/my-jobs/${userId}/${role}`),
+        axios.get(`${API_BASE}/jobs/my-jobs/${userId}`),
         axios.get(`${API_BASE}/jobs/approvals/${userId}/${role}`),
       ]);
       if (jobsRes.data) {
         setActiveJobs(jobsRes.data.activeJobs || []);
-        setCompletedJobs(jobsRes.data.completedJobs || []);
+        setCompletedJobs(jobsRes.data.pastJobs || []);
       }
       if (approvalsRes.data) {
         setPendingHires(approvalsRes.data.pendingHires || []);
@@ -70,10 +70,10 @@ export default function MyJobsScreen() {
     if (!selectedJob) return;
     try {
       const targetId = isEmployer
-        ? selectedJob.hiredWorker?._id || selectedJob.hiredWorker
+        ? selectedJob.assignedTo?._id || selectedJob.assignedTo
         : selectedJob.ownerId?._id || selectedJob.ownerId;
-      await axios.put(`${API_BASE}/jobs/${selectedJob._id}/rate`, {
-        raterId: userId, targetId, score: ratingScore,
+      await axios.post(`${API_BASE}/jobs/${selectedJob._id}/rate`, {
+        targetUserId: targetId, ratingValue: ratingScore, role
       });
       Alert.alert("Teşekkürler", "Puanınız kaydedildi.");
       setRatingModal(false);
@@ -129,7 +129,8 @@ export default function MyJobsScreen() {
 
   const renderJobItem = ({ item }) => {
     const status = getStatusInfo(item);
-    const canRate = activeTab === "completed" && !item.ratings?.find((r) => String(r.raterId) === String(userId));
+    const hasRated = isEmployer ? item.employerRated : item.workerRated;
+    const canRate = activeTab === "completed" && !hasRated;
 
     return (
       <View style={styles.card}>
@@ -155,29 +156,42 @@ export default function MyJobsScreen() {
 
   // --- RENDER: ONAY KARTI ---
   const renderApprovalItem = ({ item }) => {
-    // Başvurulu iş mı?
-    if (item.applicants) {
-      return (
-        <View style={styles.approvalCard}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardCompany}>{item.applicants.length} başvuru</Text>
-          <View style={styles.divider} />
-          {item.applicants.map((worker) => (
-            <View key={worker._id || worker.id} style={styles.applicantRow}>
-              <View style={styles.applicantAvatar}>
-                <Text style={styles.avatarLetter}>{(worker.name || "?")[0].toUpperCase()}</Text>
+    // 1. Henüz işe başlanmamış (başvurulmuş) ilan durumu
+    if (item.status === "active") {
+      if (isEmployer) {
+        return (
+          <View style={styles.approvalCard}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardCompany}>{item.applicants?.length || 0} başvuru</Text>
+            <View style={styles.divider} />
+            {item.applicants?.map((worker) => (
+              <View key={worker._id || worker.id} style={styles.applicantRow}>
+                <View style={styles.applicantAvatar}>
+                  <Text style={styles.avatarLetter}>{(worker.name || "?")[0].toUpperCase()}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.applicantName}>{worker.name || "İsimsiz"}</Text>
+                  <Text style={styles.applicantRating}>⭐ {worker.rating?.toFixed(1) || "5.0"}</Text>
+                </View>
+                <TouchableOpacity style={styles.hireBtn} onPress={() => handleHireWorker(item._id || item.id, worker._id || worker.id, worker.name || "İşçi")}>
+                  <Text style={styles.hireBtnText}>İşe Al</Text>
+                </TouchableOpacity>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.applicantName}>{worker.name || "İsimsiz"}</Text>
-                <Text style={styles.applicantRating}>⭐ {worker.rating?.toFixed(1) || "5.0"}</Text>
-              </View>
-              <TouchableOpacity style={styles.hireBtn} onPress={() => handleHireWorker(item._id || item.id, worker._id || worker.id, worker.name || "İşçi")}>
-                <Text style={styles.hireBtnText}>İşe Al</Text>
-              </TouchableOpacity>
+            ))}
+          </View>
+        );
+      } else {
+        return (
+          <View style={styles.approvalCard}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardCompany}>{item.ownerId?.name || item.company || "İşveren"}</Text>
+            <View style={styles.cardBottom}>
+              <View style={[styles.statusDot, { backgroundColor: '#F5A623' }]} />
+              <Text style={styles.statusText}>İşverenin Onayı Bekleniyor</Text>
             </View>
-          ))}
-        </View>
-      );
+          </View>
+        );
+      }
     }
 
     // İş bitimi onayı

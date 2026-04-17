@@ -1,6 +1,7 @@
 // src/screens/Profile/ProfileScreen.js
 import { Ionicons } from "@expo/vector-icons";
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   Alert,
   Image,
@@ -11,7 +12,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
+import API_BASE from "../../config/api";
 import { getCommissionTier } from "../../utils/commission";
 
 // Uyarıyı önlemek için dışarıda tanımlanan bileşen
@@ -33,19 +36,36 @@ const SpecialMenu = ({ icon, title, subtitle, color, onPress }) => (
 );
 
 export default function ProfileScreen({ navigation }) {
-  const { user, logout } = useContext(AuthContext);
-  const isEmployer = user?.user?.role === "employer" || user?.role === "employer";
+  const { user, logout, setUser } = useContext(AuthContext);
+  const userData = user?.user || user;
+  const isEmployer = userData?.role === "employer";
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchProfile = async () => {
+        try {
+          const userId = userData?._id || userData?.id;
+          if (!userId) return;
+          const res = await axios.get(`${API_BASE}/users/${userId}`);
+          setUser(res.data);
+        } catch (error) {
+          console.log("Profil güncellenemedi:", error.message);
+        }
+      };
+      fetchProfile();
+    }, [userData?._id, userData?.id])
+  );
 
   // Veri Kontrolü: Backend'den gelen ismin kaybolmaması için geliştirilmiş mantık
   const getFullName = () => {
-    const data = user?.user || user;
-    if (data?.firstName && data?.lastName) {
-      return `${data.firstName} ${data.lastName}`;
+    if (userData?.firstName && userData?.lastName) {
+      return `${userData.firstName} ${userData.lastName}`;
     }
-    return data?.name || "Kullanıcı";
+    return userData?.name || "Kullanıcı";
   };
 
   const fullName = getFullName();
+
   const calculateAge = (birthDateStr) => {
     if (!birthDateStr) return "--";
     let birthDate;
@@ -65,7 +85,7 @@ export default function ProfileScreen({ navigation }) {
     return age;
   };
 
-  const birthDate = user?.user?.birthDate || user?.birthDate;
+  const birthDate = userData?.birthDate;
   const age = calculateAge(birthDate);
 
   const handleLogout = () => {

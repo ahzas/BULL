@@ -59,6 +59,20 @@ router.put("/update-location", userController.updateLocation);
  * @route   GET api/users/nearby-workers
  * @desc    Yakındaki İşçileri Getir (İşverenler için)
  */
-router.get("/nearby-workers", userController.getNearbyWorkers);
-
-module.exports = router;
+  router.get("/nearby-workers", userController.getNearbyWorkers);
+  
+  /**
+   * @route   GET api/users/:id
+   * @desc    Kullanıcı Profili Getir
+   */
+  router.get("/:id", async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id).select("-password");
+      if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      res.json(user);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+  module.exports = router;

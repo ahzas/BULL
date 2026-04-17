@@ -16,7 +16,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
   const handleApply = async () => {
     try {
-      await axios.put(`${API_BASE}/jobs/${job._id}/apply`, { workerId: userId });
+      await axios.post(`${API_BASE}/jobs/${job._id}/apply`, { userId: userId });
       Alert.alert("Başarılı", "Başvurunuz iletildi!");
       navigation.goBack();
     } catch (error) {
